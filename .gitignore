@@ -1,0 +1,9 @@
+/target
+/zed-extension/target
+Cargo.lock
+*.wasm
+.DS_Store
+# The parser binary is installed to ~/.local/share, never committed.
+execute_query
+execute_query_macos
+execute_query_linux

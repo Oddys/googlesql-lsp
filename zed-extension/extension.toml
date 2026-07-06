@@ -1,0 +1,11 @@
+id = "googlesql"
+name = "GoogleSQL"
+version = "0.1.0"
+schema_version = 1
+authors = ["Oddys"]
+description = "Error highlighting for BigQuery / GoogleSQL files, backed by Google's official GoogleSQL parser."
+repository = "https://github.com/google/googlesql"
+
+[language_servers.googlesql-lsp]
+name = "GoogleSQL LSP"
+languages = ["GoogleSQL"]

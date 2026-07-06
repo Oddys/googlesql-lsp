@@ -1,0 +1,22 @@
+[package]
+name = "googlesql-lsp"
+version = "0.1.0"
+edition = "2021"
+description = "LSP server that wraps Google's GoogleSQL parser (via execute_query --mode=parse) for BigQuery SQL error highlighting"
+license = "Apache-2.0"
+
+[[bin]]
+name = "googlesql-lsp"
+path = "src/main.rs"
+
+[dependencies]
+tower-lsp = "0.20"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "time"] }
+dashmap = "5"
+regex = "1"
+once_cell = "1"
+dirs = "5"
+serde_json = "1"
+
+[profile.release]
+strip = true

@@ -1,0 +1,16 @@
+[package]
+name = "zed_googlesql"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+zed_extension_api = "0.7.0"
+
+# Standalone workspace so this wasm crate is not pulled into the parent server crate's
+# build (they target different platforms).
+[workspace]
