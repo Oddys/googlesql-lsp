@@ -20,7 +20,7 @@ Zed ──stdio LSP──▶ googlesql-lsp ──▶ execute_query --mode=parse 
 | Path | What it is |
 | --- | --- |
 | `src/` | The `googlesql-lsp` language server (Rust, [`tower-lsp`](https://crates.io/crates/tower-lsp)). |
-| `zed-extension/` | The Zed extension (Rust → WASM) that registers the `GoogleSQL` language and launches the server. |
+| `zed-extension/` | The Zed extension (Rust → WASM) that attaches the server to Zed's `SQL` language. |
 | `scripts/install-parser.sh` | Downloads the prebuilt `execute_query` binary. |
 | `scripts/smoke-test.sh` | Runs the parser on sample SQL so you can see the raw output. |
 
@@ -53,6 +53,10 @@ Puts `googlesql-lsp` on your `PATH` (in `~/.cargo/bin`). The Zed extension finds
 In Zed, open the command palette and run **`zed: install dev extension`**, then select
 the `zed-extension/` directory in this repo. Zed compiles the WASM extension and loads it.
 
+> **Requires the SQL extension.** This extension only adds a language server; it relies on
+> Zed's **SQL** extension for the language definition and syntax highlighting. Install it from
+> the extensions view if you don't have it (most Zed setups do).
+
 Open any `.sql` file and type an error (e.g. `SELECT 1 FRM t`) — you'll get a red squiggle
 with GoogleSQL's message at the exact column. Fix it and the squiggle clears.
 
@@ -73,12 +77,13 @@ cargo test              # unit tests for the diagnostic scraper
 
 ## File associations
 
-The extension claims `.sql`, `.bqsql`, and `.googlesql`. If you have another SQL extension
-that also claims `.sql`, either use `.bqsql`/`.googlesql`, or add a
+The server attaches to Zed's **SQL** language, which owns `.sql` by default — so BigQuery
+files light up with no extra config. To also run the server on other suffixes (e.g. `.bqsql`,
+`.googlesql`), map them to `SQL` via a
 [file association](https://zed.dev/docs/configuring-zed#file-types) in your Zed settings:
 
 ```json
-"file_types": { "GoogleSQL": ["*.sql"] }
+"file_types": { "SQL": ["bqsql", "googlesql"] }
 ```
 
 ## Limitations

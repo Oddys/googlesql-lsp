@@ -6,6 +6,13 @@ authors = ["Oddys"]
 description = "Error highlighting for BigQuery / GoogleSQL files, backed by Google's official GoogleSQL parser."
 repository = "https://github.com/google/googlesql"
 
+# We attach our language server to Zed's existing `SQL` language (provided by the
+# built-in SQL extension) rather than defining our own language + grammar. Defining
+# a competing `GoogleSQL` language shadowed the SQL extension and killed syntax
+# highlighting; shipping our own `sql` grammar is impossible because its parser
+# exports the C symbol `tree_sitter_sql`, which collides with the SQL extension's
+# grammar of the same id. Contributing only the LSP avoids both problems: the SQL
+# extension keeps providing grammar + highlighting, and we add error diagnostics.
 [language_servers.googlesql-lsp]
 name = "GoogleSQL LSP"
-languages = ["GoogleSQL"]
+languages = ["SQL"]
