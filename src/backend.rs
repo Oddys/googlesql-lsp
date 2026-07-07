@@ -100,7 +100,7 @@ impl LanguageServer for Backend {
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
-                name: "googlesql-lsp".to_string(),
+                name: "googlesql".to_string(),
                 version: Some(env!("CARGO_PKG_VERSION").to_string()),
             }),
         })
