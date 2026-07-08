@@ -6,10 +6,9 @@ description: Explains the code in a file, a config file, or a project-related co
 # Explain
 
 Produce a clear, self-contained explanation of a file, a piece of config, or a
-project concept. Write for a competent software engineer who has never seen
-this codebase and does not know its domain jargon — they know general
-programming, but nothing project-specific (no GoogleSQL/LSP internals, no
-Rust).
+project concept. Write for a competent software engineer who know general
+programming, but nothing project-specific, except for specified in EXPLAINED.md 
+(previously explained by invoking this skill).
 
 ## Before writing
 
@@ -67,4 +66,5 @@ Adapt the shape to what's being explained, but generally cover:
   minimal snippet needed to anchor a point.
 - Keep it proportional: a 30-line helper doesn't need the same depth as
   a core module. Match explanation length to complexity, not file size.
-- Once done with the explanation, ask the user if they want you to save this explanation to EXPLAINED.md or have more questions.
+- Once done with the explanation, ask the user if they want you to save 
+  this explanation to EXPLAINED.md or do they have more questions.
