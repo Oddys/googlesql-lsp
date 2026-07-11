@@ -31,6 +31,23 @@ browser.
 3. Check `diagrams/DIAGRAMS.md` (create it if this is the first diagram)
    to see if this exact topic was already drawn. If so, ask whether to
    regenerate it in place or the user wants something different this time.
+   If regenerating in place, treat it as a full redraw, not a patch —
+   both this skill and the project may have moved on since the old file
+   was written:
+   - Re-read this SKILL.md's template and hard constraints fresh, and
+     rebuild the diagram against them. Don't carry forward structure or
+     CSS from the old file on the assumption it already conforms — the
+     skill may have picked up new requirements (e.g. the sticky lane
+     header, a footer format change) since that diagram was drawn.
+   - Re-read the source file(s) the diagram cites, in full, as if drawing
+     for the first time. Don't diff the old diagram against the new code
+     and patch only what looks different — code the old diagram treated
+     as stable may have been renamed, removed, or restructured. Confirm
+     every actor, message, and condition still traces to real code before
+     reusing it.
+   - If the old diagram's sources no longer exist or the topic no longer
+     maps cleanly onto the current code structure, say so and ask how to
+     proceed rather than forcing the old shape onto new code.
 
 ## Output format — hard constraints
 
