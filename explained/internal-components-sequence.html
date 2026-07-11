@@ -1,0 +1,412 @@
+<title>LspService, Server, Backend, parser, diagnostics</title>
+<style>
+  :root {
+    --paper: #f5f4ef;
+    --panel: #ffffff;
+    --ink: #1c2027;
+    --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16);
+    --rule-soft: rgba(28, 32, 39, 0.09);
+    --transport: #4b5563;
+    --dispatch: #3d5a8a;
+    --dispatch-soft: #e6ebf4;
+    --core: #196b73;
+    --core-soft: #e4f0ef;
+    --proc: #a8691f;
+    --proc-soft: #f4e8d7;
+    --data: #6d4e7c;
+    --data-soft: #eee6f1;
+    --note-bg: #fbf9f3;
+    --note-border: #d8cfb8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12151a;
+      --panel: #171b21;
+      --ink: #e6e8ec;
+      --ink-dim: #929aa8;
+      --rule: rgba(230, 232, 236, 0.18);
+      --rule-soft: rgba(230, 232, 236, 0.09);
+      --transport: #9aa4b2;
+      --dispatch: #8fb0e6;
+      --dispatch-soft: #1d2733;
+      --core: #57bcc4;
+      --core-soft: #172b2c;
+      --proc: #dba25b;
+      --proc-soft: #2c2214;
+      --data: #c6a9d6;
+      --data-soft: #271f2b;
+      --note-bg: #1c1a14;
+      --note-border: #453c28;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151a;
+    --panel: #171b21;
+    --ink: #e6e8ec;
+    --ink-dim: #929aa8;
+    --rule: rgba(230, 232, 236, 0.18);
+    --rule-soft: rgba(230, 232, 236, 0.09);
+    --transport: #9aa4b2;
+    --dispatch: #8fb0e6;
+    --dispatch-soft: #1d2733;
+    --core: #57bcc4;
+    --core-soft: #172b2c;
+    --proc: #dba25b;
+    --proc-soft: #2c2214;
+    --data: #c6a9d6;
+    --data-soft: #271f2b;
+    --note-bg: #1c1a14;
+    --note-border: #453c28;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f4ef;
+    --panel: #ffffff;
+    --ink: #1c2027;
+    --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16);
+    --rule-soft: rgba(28, 32, 39, 0.09);
+    --transport: #4b5563;
+    --dispatch: #3d5a8a;
+    --dispatch-soft: #e6ebf4;
+    --core: #196b73;
+    --core-soft: #e4f0ef;
+    --proc: #a8691f;
+    --proc-soft: #f4e8d7;
+    --data: #6d4e7c;
+    --data-soft: #eee6f1;
+    --note-bg: #fbf9f3;
+    --note-border: #d8cfb8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 20px 64px;
+  }
+
+  .wrap { max-width: 1160px; margin: 0 auto; }
+
+  header {
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .theme-toggle {
+    flex: none;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--core); border-color: var(--core); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--core); outline-offset: 2px; }
+  .theme-toggle svg { width: 18px; height: 18px; }
+  .theme-toggle .icon-moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: inline-flex; }
+
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--core);
+    margin: 0 0 10px;
+  }
+
+  h1 {
+    font-size: 25px;
+    margin: 0 0 8px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  header p {
+    margin: 0;
+    max-width: 66ch;
+    color: var(--ink-dim);
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    row-gap: 10px;
+    margin-top: 18px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend svg { flex: none; }
+
+  .diagram-shell {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 8px;
+  }
+
+  .diagram-scroll { overflow-x: auto; }
+
+  svg.diagram { display: block; min-width: 880px; width: 100%; height: auto; }
+
+  text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+
+  footer {
+    margin-top: 22px;
+    color: var(--ink-dim);
+    font-size: 12px;
+    line-height: 1.7;
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="header-row">
+      <div class="header-text">
+        <p class="eyebrow">tower-lsp internals — src/backend.rs, src/parser.rs, src/diagnostics.rs</p>
+        <h1>LspService, Server, Backend, parser, diagnostics</h1>
+        <p>
+          Not the editor-facing protocol this time — the call graph <em>inside</em> the binary: how a
+          byte on stdin turns into a call on <span class="mono">Backend</span>, and how a diagnostic
+          gets back out. Two lanes (<span class="mono">Server</span>, <span class="mono">LspService</span>)
+          are types from the <span class="mono">tower-lsp</span> crate; three (<span class="mono">Backend</span>,
+          <span class="mono">parser</span>, <span class="mono">diagnostics</span>) are this repo's own modules.
+        </p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+    <div class="legend">
+      <span><svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="none" stroke="var(--ink-dim)" stroke-width="1.4" stroke-dasharray="3,2"/></svg> tower-lsp crate type</span>
+      <span><svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="none" stroke="var(--ink-dim)" stroke-width="1.4"/></svg> this repo's module</span>
+      <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink-dim)" stroke-width="1.6"/><polygon points="25,5 18,2 18,8" fill="var(--ink-dim)"/></svg> call</span>
+      <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="4,3"/><polygon points="25,5 18,2 18,8" fill="var(--ink-dim)"/></svg> return value</span>
+      <span><svg width="30" height="14"><path d="M1,12 C10,2 20,2 29,12" fill="none" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="4,3"/><polygon points="1,12 8,10 5,17" fill="var(--ink-dim)"/></svg> loopback — skips a lane</span>
+    </div>
+  </header>
+
+  <div class="diagram-shell">
+    <div class="diagram-scroll">
+      <svg class="diagram" viewBox="0 0 1300 1220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of internal calls between Server, LspService, Backend, parser, and diagnostics">
+
+        <!-- lane x: Server 230, LspService 470, Backend 710, parser 950, diagnostics 1170 -->
+
+        <g>
+          <rect x="140" y="20" width="180" height="54" rx="8" fill="var(--panel)" stroke="var(--transport)" stroke-width="1.4" stroke-dasharray="5,3"/>
+          <text x="230" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Server</text>
+          <text x="230" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">tower_lsp::Server (transport.rs)</text>
+        </g>
+        <g>
+          <rect x="380" y="20" width="180" height="54" rx="8" fill="var(--dispatch-soft)" stroke="var(--dispatch)" stroke-width="1.4" stroke-dasharray="5,3"/>
+          <text x="470" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">LspService</text>
+          <text x="470" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">tower_lsp::LspService (service.rs)</text>
+        </g>
+        <g>
+          <rect x="620" y="20" width="180" height="54" rx="8" fill="var(--core-soft)" stroke="var(--core)" stroke-width="1.7"/>
+          <text x="710" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">Backend</text>
+          <text x="710" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">src/backend.rs</text>
+        </g>
+        <g>
+          <rect x="860" y="20" width="180" height="54" rx="8" fill="var(--proc-soft)" stroke="var(--proc)" stroke-width="1.5"/>
+          <text x="950" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">parser</text>
+          <text x="950" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">src/parser.rs</text>
+        </g>
+        <g>
+          <rect x="1080" y="20" width="180" height="54" rx="8" fill="var(--data-soft)" stroke="var(--data)" stroke-width="1.5"/>
+          <text x="1170" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">diagnostics</text>
+          <text x="1170" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">src/diagnostics.rs</text>
+        </g>
+
+        <!-- lifelines -->
+        <line x1="230" y1="74" x2="230" y2="1170" stroke="var(--transport)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="470" y1="74" x2="470" y2="1170" stroke="var(--dispatch)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="710" y1="74" x2="710" y2="1170" stroke="var(--core)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="950" y1="74" x2="950" y2="1170" stroke="var(--proc)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
+        <line x1="1170" y1="74" x2="1170" y2="1170" stroke="var(--data)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
+
+        <!-- ================= PHASE: Construction ================= -->
+        <text x="20" y="100" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">CONSTRUCTION — main.rs</text>
+        <line x1="20" y1="112" x2="1280" y2="112" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <rect x="706" y="132" width="8" height="150" rx="2" fill="var(--core)" opacity="0.45"/>
+        <line x1="466" y1="138" x2="706" y2="138" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="706,138 697,134 697,142" fill="var(--ink)"/>
+        <text x="474" y="130" font-size="12.5" class="mono" fill="var(--ink)">Backend::new(client)</text>
+        <text x="474" y="153" font-size="10.5" fill="var(--ink-dim)">the init closure passed to LspService::new — main.rs:22</text>
+
+        <line x1="706" y1="180" x2="946" y2="180" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="946,180 937,176 937,184" fill="var(--ink)"/>
+        <text x="714" y="172" font-size="12.5" class="mono" fill="var(--ink)">parser::find_binary()</text>
+        <text x="714" y="195" font-size="10.5" fill="var(--ink-dim)">$GOOGLESQL_EXECUTE_QUERY → ~/.local/share/… → $PATH</text>
+
+        <line x1="946" y1="215" x2="706" y2="215" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="706,215 715,211 715,219" fill="var(--ink)"/>
+        <text x="714" y="207" font-size="11.5" fill="var(--ink-dim)">Option&lt;PathBuf&gt; — no subprocess run yet, just a lookup</text>
+
+        <line x1="706" y1="252" x2="466" y2="252" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="466,252 475,248 475,256" fill="var(--ink)"/>
+        <text x="474" y="244" font-size="11.5" fill="var(--ink-dim)">returns the constructed Backend</text>
+
+        <g>
+          <rect x="150" y="284" width="640" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="305" font-size="11" fill="var(--ink-dim)">LspService registers LSP method names → Backend methods, returns (LspService, ClientSocket) — service.rs</text>
+        </g>
+        <g>
+          <rect x="150" y="326" width="640" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="347" font-size="11" fill="var(--ink-dim)">main.rs then builds Server::new(stdin, stdout, socket) and calls .serve(service)</text>
+        </g>
+
+        <!-- ================= PHASE: Request ================= -->
+        <text x="20" y="398" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">REQUEST — initialize</text>
+        <line x1="20" y1="410" x2="1280" y2="410" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <rect x="226" y="430" width="8" height="150" rx="2" fill="var(--transport)" opacity="0.4"/>
+        <rect x="466" y="450" width="8" height="90" rx="2" fill="var(--dispatch)" opacity="0.45"/>
+        <rect x="706" y="470" width="8" height="50" rx="2" fill="var(--core)" opacity="0.45"/>
+
+        <line x1="234" y1="436" x2="466" y2="436" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="466,436 457,432 457,440" fill="var(--ink)"/>
+        <text x="240" y="428" font-size="12.5" class="mono" fill="var(--ink)">service.call(Request{"initialize"})</text>
+        <text x="240" y="450" font-size="10.5" fill="var(--ink-dim)">decoded from a Content-Length framed stdin message</text>
+
+        <line x1="474" y1="476" x2="706" y2="476" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="706,476 697,472 697,480" fill="var(--ink)"/>
+        <text x="480" y="468" font-size="12.5" class="mono" fill="var(--ink)">Backend::initialize(params)</text>
+        <text x="480" y="491" font-size="10.5" fill="var(--ink-dim)">Router matches the method name to the generated dispatch table</text>
+
+        <line x1="706" y1="518" x2="474" y2="518" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="474,518 483,514 483,522" fill="var(--ink)"/>
+        <text x="480" y="510" font-size="11.5" fill="var(--ink-dim)">Ok(InitializeResult)</text>
+
+        <line x1="466" y1="556" x2="234" y2="556" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="234,556 243,552 243,560" fill="var(--ink)"/>
+        <text x="240" y="548" font-size="11.5" fill="var(--ink-dim)">Some(Response)</text>
+
+        <g>
+          <rect x="150" y="586" width="450" height="30" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="605" font-size="11" fill="var(--ink-dim)">Server's print_output task encodes + writes it to stdout</text>
+        </g>
+
+        <!-- ================= PHASE: Notification ================= -->
+        <text x="20" y="656" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">NOTIFICATION — didOpen / didChange / didSave</text>
+        <line x1="20" y1="668" x2="1280" y2="668" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <line x1="234" y1="694" x2="466" y2="694" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="466,694 457,690 457,698" fill="var(--ink)"/>
+        <text x="240" y="686" font-size="12.5" class="mono" fill="var(--ink)">service.call(Request{"textDocument/didChange"})</text>
+
+        <line x1="474" y1="730" x2="706" y2="730" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="706,730 697,726 697,734" fill="var(--ink)"/>
+        <text x="480" y="722" font-size="12.5" class="mono" fill="var(--ink)">Backend::did_change(params)</text>
+        <text x="480" y="745" font-size="10.5" fill="var(--ink-dim)">returns () — a notification, so LspService yields no Response</text>
+
+        <path d="M 714 772 L 770 772 L 770 800 L 714 800" fill="none" stroke="var(--core)" stroke-width="1.3" opacity="0.75"/>
+        <polygon points="714,800 723,796 723,804" fill="var(--core)"/>
+        <text x="780" y="778" font-size="11" fill="var(--core)">documents.insert(uri, text)</text>
+        <text x="780" y="796" font-size="11" fill="var(--core)">schedule_parse(uri) spawns a background task — backend.rs:41</text>
+
+        <!-- ================= PHASE: Background parse ================= -->
+        <text x="20" y="856" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">BACKGROUND TASK — after a 250ms debounce (backend.rs:53)</text>
+        <line x1="20" y1="868" x2="1280" y2="868" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <rect x="706" y="888" width="8" height="220" rx="2" fill="var(--core)" opacity="0.4"/>
+        <rect x="946" y="908" width="8" height="60" rx="2" fill="var(--proc)" opacity="0.6"/>
+
+        <line x1="714" y1="914" x2="946" y2="914" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="946,914 937,910 937,918" fill="var(--ink)"/>
+        <text x="720" y="906" font-size="12.5" class="mono" fill="var(--ink)">run_parse(bin, &amp;sql) — spawn_blocking</text>
+        <text x="720" y="929" font-size="10.5" fill="var(--ink-dim)">execute_query --mode=parse "&lt;sql&gt;" — parser.rs:56</text>
+
+        <line x1="946" y1="962" x2="714" y2="962" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,962 723,958 723,966" fill="var(--ink)"/>
+        <text x="720" y="954" font-size="10.5" fill="var(--ink-dim)">io::Result&lt;String&gt; — combined stdout+stderr; exits 0 even on a syntax error</text>
+
+        <rect x="1166" y="994" width="8" height="60" rx="2" fill="var(--data)" opacity="0.6"/>
+        <line x1="714" y1="1000" x2="1166" y2="1000" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="1166,1000 1157,996 1157,1004" fill="var(--ink)"/>
+        <text x="720" y="992" font-size="12.5" class="mono" fill="var(--ink)">parse_output(&amp;output, &amp;source)</text>
+
+        <line x1="1166" y1="1048" x2="714" y2="1048" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,1048 723,1044 723,1052" fill="var(--ink)"/>
+        <text x="720" y="1040" font-size="10.5" fill="var(--ink-dim)">Vec&lt;Diagnostic&gt; — one per "ERROR:" line, range extended to end-of-line</text>
+
+        <!-- bypass loopback arrow: Backend -> Server, curving over LspService -->
+        <path d="M 706 1104 C 600 1064 340 1064 234 1104" fill="none" stroke="var(--core)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="234,1104 244,1098 246,1110" fill="var(--core)"/>
+        <text x="500" y="1058" text-anchor="middle" font-size="12.5" class="mono" fill="var(--core)">client.publish_diagnostics(uri, diagnostics, None)</text>
+        <text x="500" y="1122" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via the ClientSocket loopback — never touches LspService's Router</text>
+
+        <g>
+          <rect x="150" y="1138" width="700" height="30" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="1157" font-size="11" fill="var(--ink-dim)">Server merges it into the same outgoing stdout stream as ordinary responses (transport.rs print_output)</text>
+        </g>
+
+        <!-- lifeline terminators -->
+        <circle cx="230" cy="1170" r="3.5" fill="var(--transport)"/>
+        <circle cx="470" cy="1170" r="3.5" fill="var(--dispatch)"/>
+        <circle cx="710" cy="1170" r="3.5" fill="var(--core)"/>
+        <circle cx="950" cy="1170" r="3.5" fill="var(--proc)"/>
+        <circle cx="1170" cy="1170" r="3.5" fill="var(--data)"/>
+      </svg>
+    </div>
+  </div>
+
+  <footer>
+    <div>Sources: construction — main.rs:22, backend.rs:31 · initialize dispatch — tower-lsp 0.20.0 service.rs (LspService::call, Router) · notification handling — backend.rs:131–144 · debounce — backend.rs:41–69 · subprocess — parser.rs:55–63 · diagnostic conversion — diagnostics.rs:25–52 · loopback write path — tower-lsp 0.20.0 transport.rs (Server::serve, print_output).</div>
+    <div>The Server/LspService internals are read from the vendored tower-lsp 0.20.0 source, not assumed from the LSP spec.</div>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    var KEY = 'googlesql-lsp-diagram-theme';
+
+    function systemPrefersDark() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function apply(theme) {
+      root.setAttribute('data-theme', theme);
+      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    apply(stored === 'dark' || stored === 'light' ? stored : (systemPrefersDark() ? 'dark' : 'light'));
+
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+</script>

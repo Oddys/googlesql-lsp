@@ -7,3 +7,5 @@ Cargo.lock
 execute_query
 execute_query_macos
 execute_query_linux
+
+CLAUDE.local.md
