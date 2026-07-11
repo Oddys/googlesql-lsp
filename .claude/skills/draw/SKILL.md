@@ -80,8 +80,11 @@ browser.
     synchronously on load (via `getBoundingClientRect()`) as well as on
     intersection change, so there's no flash of the duplicate before JS
     runs.
-- Cite sources in a footer: `path/to/file.rs:12-34` for every actor or
-  message that came from a specific place in the code.
+- Cite sources in a footer as a **list or table, one source per row** —
+  `path/to/file.rs:12-34` plus a short description of what it grounds —
+  for every actor or message that came from a specific place in the code.
+  Never collapse multiple sources onto one line; a reader scanning for a
+  specific reference needs to find it without parsing a run-on sentence.
 
 ## Template
 
@@ -184,8 +187,14 @@ together, per the hard constraint above.
   svg.diagram { display: block; min-width: 760px; width: 100%; height: auto; }
   text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
   .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
-  footer { margin-top: 22px; color: var(--ink-dim); font-size: 12px; line-height: 1.7; }
+  footer { margin-top: 22px; color: var(--ink-dim); font-size: 12px; }
   footer .mono { color: var(--ink-dim); }
+  .sources-label { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); }
+  .sources { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .sources tr { border-top: 1px solid var(--rule-soft); }
+  .sources tr:first-child { border-top: none; }
+  .sources td { padding: 4px 16px 4px 0; vertical-align: top; line-height: 1.6; }
+  .sources td:first-child { white-space: nowrap; color: var(--ink); }
 </style>
 
 <div class="wrap">
@@ -233,7 +242,15 @@ together, per the hard constraint above.
     </div>
   </div>
 
-  <footer><!-- Sources: path:line refs for every actor/message drawn above --></footer>
+  <footer>
+    <p class="sources-label">Sources</p>
+    <table class="sources">
+      <tbody>
+        <!-- one <tr> per source; first <td> is the path:line ref, second is what it grounds -->
+        <tr><td class="mono"><!-- path/to/file.rs:12-34 --></td><td><!-- what this cites --></td></tr>
+      </tbody>
+    </table>
+  </footer>
 </div>
 
 <script>
