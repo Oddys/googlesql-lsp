@@ -49,3 +49,29 @@ The binary's entry point. Its only job is wiring: start the async runtime, hook 
 **Non-obvious note**
 
 There's no error handling here (no `Result`, no `.unwrap()`) — `serve().await` only returns once the connection closes, and per-request failures are expected to be handled inside `Backend`'s trait methods rather than crashing the process. The binary reads/writes over stdio rather than a network port, matching how most editors spawn a language server as a child process.
+
+## zed-extension/src/lib.rs
+
+**Purpose**
+
+Entry point for a **Zed extension** — Zed (the code editor) supports third-party extensions compiled to WebAssembly (WASM) that plug into its editor via a defined API (the `zed_extension_api` crate). This extension's only job is to tell Zed how to launch the `googlesql-lsp` language server binary (the project's main crate) whenever Zed opens a SQL file. Per `zed-extension/extension.toml`, it deliberately doesn't define its own language/grammar — it attaches to Zed's built-in `SQL` language and only contributes the LSP (Language Server Protocol) integration, to avoid a `tree_sitter_sql` C-symbol collision with Zed's built-in SQL extension.
+
+Per `zed-extension/Cargo.toml:8` (`crate-type = ["cdylib"]`), this crate compiles to a C-compatible dynamic library — for Zed extensions the target is `wasm32-wasi`, so the compiled artifact is a `.wasm` module Zed loads, not a native binary.
+
+**Key pieces**
+
+- **`GoogleSqlExtension`** (line 5) — a zero-field marker struct that exists purely to implement the `zed::Extension` trait; Zed's extension host needs some type to hold state across calls, but this extension is stateless.
+- **`impl zed::Extension for GoogleSqlExtension`** (lines 7–33) — the trait Zed's extension host calls into:
+  - **`new()`** (lines 8–10) — trivial constructor, called once when Zed instantiates the extension.
+  - **`language_server_command(...)`** (lines 12–32) — called by Zed whenever it needs to start (or restart) the language server for a SQL file; must return a `Command` telling Zed what to execute.
+
+**Flow**
+
+1. Zed calls `worktree.which("googlesql-lsp")` (line 19) — searches `PATH` as seen from the worktree (a `Worktree` is Zed's handle to a project folder currently open in the editor — a "workspace root," unrelated to Git's own `git worktree` concept) for an executable named `googlesql-lsp`, rather than assuming a fixed install location. This assumes the user has already run `cargo install --path .` from the repo root, putting the binary on their normal `PATH`.
+2. If not found, the extension fails fast with a descriptive error string (lines 20–22) telling the user exactly what to run.
+3. If found, it returns a `Command` (lines 25–31) — a plain data struct describing how to spawn a subprocess (binary path, args, env vars; conceptually like `std::process::Command` but not directly executable by the extension itself, since WASM code can't spawn OS processes — it only describes the process and Zed's native host actually launches it) — with the resolved path, no arguments, and the worktree's shell environment attached.
+4. Zed spawns that `Command` as a child process and speaks LSP to it over stdin/stdout — the rest of the protocol handling lives in the `googlesql-lsp` binary itself (`src/main.rs`, above), not in this extension.
+
+**Non-obvious note**
+
+`zed::register_extension!(GoogleSqlExtension);` (line 35) is a macro (compile-time code generation), not a runtime call into a central registry. It expands to the `extern "C"` exports Zed's WASM host looks for by name when it loads the compiled `.wasm` module. "Registration" happens implicitly at load time: Zed loads the module (per `extension.toml`'s `id = "googlesql"`), finds those macro-generated exports, and uses them to instantiate `GoogleSqlExtension` and call its trait methods — there's no separate registry file elsewhere in the repo.
