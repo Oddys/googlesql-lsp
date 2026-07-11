@@ -35,12 +35,14 @@ respectively).
    from a partial read, a grep sample, or memory of similar code. For a
    directory/project, read the entry points and the core modules fully, and at
    least skim every file so nothing in scope is unexamined.
-4. Trace the non-obvious dependencies. When code in scope calls a
+4. If the file contains any comments that start with `:i` (e.g. `//:i` or `#:i`)
+   make sure you check those user's concerns.
+5. Trace the non-obvious dependencies. When code in scope calls a
    project-specific function, relies on an invariant established elsewhere, or
    trusts an input from another layer, read enough of that other code to judge
    whether the assumption actually holds. A bug is often the gap between what
    one function guarantees and what its caller assumes.
-5. Note the language and its edition/version, plus the declared dependency
+6. Note the language and its edition/version, plus the declared dependency
    versions — `Cargo.toml` / `Cargo.lock` for Rust, `pyproject.toml` / `uv.lock`
    for Python, `build.zig` / `build.zig.zon` for Zig, or the equivalent
    manifest+lockfile for whatever language the target is in. You'll use these to
@@ -137,6 +139,10 @@ release notes here.
 - Once you've presented the findings, ask the user whether they want you to save
   them to `dig/ISSUES.md`, or whether they have follow-up questions. Keep asking
   after each answer until the user tells you to either save or discard.
+- Once the user confirmed saving to `dig/ISSUES.md` or discarding the
+  explanation, if there were `:i` comments in the file(s) you explained 
+  ask if the user wants you to delete those comments. Do not touch `:i` in other
+  files.
 - When saving, append the findings under a dated, scope-labelled heading rather
   than overwriting the file, so `dig/ISSUES.md` accumulates a history. Keep each
   entry's `file_path:line_number` anchors and severity grouping intact. When a

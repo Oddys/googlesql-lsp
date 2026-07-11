@@ -78,6 +78,8 @@ Adapt the shape to what's being explained, but generally cover:
   minimal snippet needed to anchor a point.
 - Keep it proportional: a 30-line helper doesn't need the same depth as
   a core module. Match explanation length to complexity, not file size.
+
+## Saving findings
 - Once done with the explanation, ask the user if they want you to save 
   this explanation to `dig/EXPLAINED.md` or do they have more questions
   Proceed with asking after your every answer until the user tells
