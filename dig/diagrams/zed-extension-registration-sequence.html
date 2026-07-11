@@ -108,7 +108,7 @@
   <header>
     <div class="header-row">
       <div class="header-text">
-        <p class="eyebrow">zed-extension/src/lib.rs, extension.toml (this repo) — cross-referenced against zed-industries/zed @ bc990753 (extension_host, wasm_host, language_extension crates)</p>
+        <p class="eyebrow">zed-extension/src/lib.rs, extension.toml (this repo) — cross-referenced against zed-industries/zed @ 65e1c5af (extension_host, wasm_host, language_extension crates)</p>
         <h1>Zed ⇄ googlesql extension: registration and low-level interaction</h1>
         <p>
           How Zed discovers this repo's <span class="mono">zed-extension</span>, compiles and instantiates it as a
@@ -145,7 +145,7 @@
             <text x="230" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_host.rs (Zed)</text>
           </g>
           <g>
-            <rect x="380" y="20" width="180" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <rect x="363" y="20" width="214" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
             <text x="470" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionLspAdapter</text>
             <text x="470" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_lsp_adapter.rs (Zed)</text>
           </g>
@@ -168,7 +168,7 @@
       </div>
     </div>
     <div class="diagram-scroll">
-      <svg class="diagram" viewBox="0 0 1320 2115" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of Zed loading and calling the googlesql Zed extension across the WASM component boundary">
+      <svg class="diagram" viewBox="0 0 1320 2259" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of Zed loading and calling the googlesql Zed extension across the WASM component boundary">
 
         <!-- lane x: ExtensionStore 230, ExtensionLspAdapter 470, WasmHost 710, extension task 950, WASM guest 1190 -->
 
@@ -179,7 +179,7 @@
             <text x="230" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_host.rs (Zed)</text>
           </g>
           <g>
-            <rect x="380" y="20" width="180" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <rect x="363" y="20" width="214" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
             <text x="470" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionLspAdapter</text>
             <text x="470" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_lsp_adapter.rs (Zed)</text>
           </g>
@@ -201,11 +201,11 @@
         </g>
 
         <!-- lifelines -->
-        <line x1="230" y1="74" x2="230" y2="2072" stroke="var(--est)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
-        <line x1="470" y1="74" x2="470" y2="2072" stroke="var(--lad)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
-        <line x1="710" y1="74" x2="710" y2="2072" stroke="var(--wh)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
-        <line x1="950" y1="74" x2="950" y2="2072" stroke="var(--tsk)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
-        <line x1="1190" y1="74" x2="1190" y2="2072" stroke="var(--gst)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="230" y1="74" x2="230" y2="2216" stroke="var(--est)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="470" y1="74" x2="470" y2="2216" stroke="var(--lad)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="710" y1="74" x2="710" y2="2216" stroke="var(--wh)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="950" y1="74" x2="950" y2="2216" stroke="var(--tsk)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="1190" y1="74" x2="1190" y2="2216" stroke="var(--gst)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
 
         <!-- ================= PHASE 1: DISCOVERY & REGISTRATION ================= -->
         <text x="20" y="100" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">PHASE 1 — EXTENSION LOAD &amp; REGISTRATION (Zed startup / extensions dir change)</text>
@@ -223,15 +223,16 @@
         <text x="240" y="246" font-size="10.5" fill="var(--ink-dim)">reads extension.wasm bytes off disk via fs.open_sync — wasm_host.rs:847-869</text>
 
         <g>
-          <rect x="630" y="276" width="450" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <rect x="630" y="276" width="550" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
           <text x="642" y="294" font-size="11" fill="var(--ink-dim)">parse_wasm_extension_version(): scans a custom wasm section named "zed:api-version"</text>
           <text x="642" y="311" font-size="11" fill="var(--ink-dim)">(6 bytes = 3×u16 BE) → 0.7.0; Component::from_binary compiles it — wasm_host.rs:651,807-844</text>
         </g>
 
         <g>
-          <rect x="630" y="348" width="470" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="642" y="366" font-size="11" fill="var(--ink-dim)">Store::new(WasmState{...}); Extension::instantiate_async picks the WIT compatibility shim for</text>
-          <text x="642" y="383" font-size="11" fill="var(--ink-dim)">0.7.0 → since_v0_6_0 (0.6.0 ≤ 0.7.0 &lt; 0.8.0), linking host imports — wasm_host.rs:660-684; wit.rs:118-134</text>
+          <rect x="630" y="348" width="470" height="66" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="366" font-size="11" fill="var(--ink-dim)">Store::new(WasmState{...}); Extension::instantiate_async picks the WIT</text>
+          <text x="642" y="383" font-size="11" fill="var(--ink-dim)">compatibility shim for 0.7.0 → since_v0_6_0 (0.6.0 ≤ 0.7.0 &lt; 0.8.0),</text>
+          <text x="642" y="400" font-size="11" fill="var(--ink-dim)">linking host imports — wasm_host.rs:660-684; wit.rs:118-134</text>
         </g>
 
         <line x1="714" y1="444" x2="1186" y2="444" stroke="var(--ink)" stroke-width="1.5"/>
@@ -241,10 +242,10 @@
         <text x="720" y="472" font-size="10.5" fill="var(--ink-dim)">before the mpsc message-loop task below even exists.</text>
 
         <g>
-          <rect x="1000" y="496" width="300" height="64" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="1012" y="514" font-size="11" fill="var(--ink-dim)">register_extension!(GoogleSqlExtension) expands to</text>
-          <text x="1012" y="530" font-size="11" fill="var(--ink-dim)">extern "C" fn __init_extension() → register_extension(</text>
-          <text x="1012" y="546" font-size="11" fill="var(--ink-dim)">|| Box::new(GoogleSqlExtension::new())) — lib.rs:8-10,35</text>
+          <rect x="960" y="496" width="340" height="64" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="972" y="514" font-size="11" fill="var(--ink-dim)">register_extension!(GoogleSqlExtension) expands to</text>
+          <text x="972" y="530" font-size="11" fill="var(--ink-dim)">extern "C" fn __init_extension() → register_extension(</text>
+          <text x="972" y="546" font-size="11" fill="var(--ink-dim)">|| Box::new(GoogleSqlExtension::new())) — lib.rs:8-10,35</text>
         </g>
 
         <line x1="1186" y1="602" x2="714" y2="602" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
@@ -263,7 +264,7 @@
         <text x="240" y="740" font-size="10.5" fill="var(--ink-dim)">for each language in manifest.language_servers["googlesql"].languages() — extension_host.rs:1536-1543</text>
 
         <g>
-          <rect x="390" y="764" width="440" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <rect x="390" y="764" width="540" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
           <text x="402" y="782" font-size="11" fill="var(--ink-dim)">wraps as ExtensionLspAdapter{extension, language_server_id, language};</text>
           <text x="402" y="799" font-size="11" fill="var(--ink-dim)">language_registry.register_lsp_adapter("SQL", adapter) — extension_lsp_adapter.rs:54-69</text>
         </g>
@@ -284,9 +285,10 @@
         <text x="480" y="1016" font-size="10.5" fill="var(--ink-dim)">delegate wrapped as WorktreeDelegateAdapter — extension_lsp_adapter.rs:170-178</text>
 
         <g>
-          <rect x="630" y="1040" width="480" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="642" y="1058" font-size="11" fill="var(--ink-dim)">WasmExtension::call(): pushes WorktreeDelegateAdapter into store.table (ResourceTable)</text>
-          <text x="642" y="1075" font-size="11" fill="var(--ink-dim)">→ resource handle; sends closure over tx, awaits a oneshot reply — wasm_host.rs:88-112,872-901</text>
+          <rect x="630" y="1040" width="480" height="66" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="1058" font-size="11" fill="var(--ink-dim)">WasmExtension::call(): pushes WorktreeDelegateAdapter into store.table</text>
+          <text x="642" y="1075" font-size="11" fill="var(--ink-dim)">(ResourceTable) → resource handle; sends closure over tx, awaits a</text>
+          <text x="642" y="1092" font-size="11" fill="var(--ink-dim)">oneshot reply — wasm_host.rs:88-112,872-901</text>
         </g>
 
         <line x1="714" y1="1136" x2="946" y2="1136" stroke="var(--ink)" stroke-width="1.5"/>
@@ -295,83 +297,84 @@
 
         <line x1="954" y1="1190" x2="1186" y2="1190" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="1186,1190 1177,1186 1177,1194" fill="var(--ink)"/>
-        <text x="960" y="1180" font-size="12.5" class="mono" fill="var(--ink)">call_language_server_command(store, "googlesql", resource)</text>
-        <text x="960" y="1204" font-size="10.5" fill="var(--ink-dim)">host → guest across the WASM ABI (since_v0_6_0::Extension); id as a WIT string, worktree as</text>
-        <text x="960" y="1218" font-size="10.5" fill="var(--ink-dim)">a WIT resource handle — wit.rs:225-238</text>
+        <text x="960" y="1180" font-size="11" class="mono" fill="var(--ink)">call_language_server_command("googlesql", resource)</text>
+        <text x="960" y="1204" font-size="10.5" fill="var(--ink-dim)">host → guest across the WASM ABI (since_v0_6_0::Extension);</text>
+        <text x="960" y="1218" font-size="10.5" fill="var(--ink-dim)">id + language_name reach wit.rs dispatcher — wit.rs:225-231</text>
 
         <g>
           <rect x="390" y="1240" width="850" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="402" y="1258" font-size="11" fill="var(--ink-dim)">language_name IS available up at the host wrapper (extension_lsp_adapter.rs, wasm_host.rs:88-93) but is</text>
-          <text x="402" y="1275" font-size="11" fill="var(--ink-dim)">NOT forwarded across the WASM ABI — the guest's language_server_command only ever sees language_server_id + worktree.</text>
+          <text x="402" y="1258" font-size="11" fill="var(--ink-dim)">language_name reaches wit.rs as a real parameter (extension_lsp_adapter.rs:173-176 → wasm_host.rs:88-101 → wit.rs:229) —</text>
+          <text x="402" y="1275" font-size="11" fill="var(--ink-dim)">but every match arm ≥0.1.0 (wit.rs:232-264) drops it before the WIT call; only the legacy pre-0.1 path (265-284) uses it.</text>
         </g>
 
         <g>
-          <rect x="1000" y="1312" width="300" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="1012" y="1330" font-size="11" fill="var(--ink-dim)">dispatches to &lt;GoogleSqlExtension as</text>
-          <text x="1012" y="1347" font-size="11" fill="var(--ink-dim)">zed::Extension&gt;::language_server_command — lib.rs:12-32</text>
+          <rect x="940" y="1312" width="360" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="952" y="1330" font-size="11" fill="var(--ink-dim)">dispatches to &lt;GoogleSqlExtension as</text>
+          <text x="952" y="1347" font-size="11" fill="var(--ink-dim)">zed::Extension&gt;::language_server_command — lib.rs:12-32</text>
         </g>
 
-        <path d="M 1186 1424 C 950 1382 700 1382 474 1424" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
-        <polygon points="474,1424 484,1418 486,1430" fill="var(--ink)"/>
-        <text x="830" y="1392" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.which("googlesql-lsp")</text>
-        <text x="830" y="1408" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:19</text>
+        <text x="830" y="1384" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.which("googlesql-lsp")</text>
+        <text x="830" y="1400" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:19</text>
+        <path d="M 1186 1456 C 950 1403 700 1403 474 1456" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <polygon points="474,1456 484,1450 486,1462" fill="var(--ink)"/>
 
-        <path d="M 474 1478 C 700 1436 950 1436 1186 1478" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
-        <polygon points="1186,1478 1176,1472 1174,1484" fill="var(--ink)"/>
-        <text x="830" y="1446" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Some(path) | None</text>
-        <text x="830" y="1462" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::which → delegate.which(...) [outside this repo] — extension_lsp_adapter.rs:42-47</text>
+        <text x="830" y="1480" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Some(path) | None</text>
+        <text x="830" y="1496" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::which → delegate.which(...) [outside this repo] — extension_lsp_adapter.rs:42-47</text>
+        <path d="M 474 1552 C 700 1499 950 1499 1186 1552" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="1186,1552 1176,1546 1174,1558" fill="var(--ink)"/>
 
         <g>
-          <rect x="700" y="1502" width="540" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="712" y="1520" font-size="11" fill="var(--ink-dim)">which() = None ⇒ guest returns Err("could not find googlesql-lsp on PATH…")</text>
-          <text x="712" y="1537" font-size="11" fill="var(--ink-dim)">immediately, skipping the rest of this call — lib.rs:19-23</text>
+          <rect x="700" y="1576" width="540" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="712" y="1594" font-size="11" fill="var(--ink-dim)">which() = None ⇒ guest returns Err("could not find googlesql-lsp on PATH…")</text>
+          <text x="712" y="1611" font-size="11" fill="var(--ink-dim)">immediately, skipping the rest of this call — lib.rs:19-23</text>
         </g>
 
-        <path d="M 1186 1626 C 950 1584 700 1584 474 1626" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
-        <polygon points="474,1626 484,1620 486,1632" fill="var(--ink)"/>
-        <text x="830" y="1594" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.shell_env()</text>
-        <text x="830" y="1610" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:30</text>
+        <text x="830" y="1672" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.shell_env()</text>
+        <text x="830" y="1688" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:30</text>
+        <path d="M 1186 1744 C 950 1691 700 1691 474 1744" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <polygon points="474,1744 484,1738 486,1750" fill="var(--ink)"/>
 
-        <path d="M 474 1680 C 700 1638 950 1638 1186 1680" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
-        <polygon points="1186,1680 1176,1674 1174,1686" fill="var(--ink)"/>
-        <text x="830" y="1648" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Vec&lt;(String,String)&gt;</text>
-        <text x="830" y="1664" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::shell_env → delegate.shell_env() — extension_lsp_adapter.rs:49-51</text>
+        <text x="830" y="1768" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Vec&lt;(String,String)&gt;</text>
+        <text x="830" y="1784" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::shell_env → delegate.shell_env() — extension_lsp_adapter.rs:49-51</text>
+        <path d="M 474 1840 C 700 1787 950 1787 1186 1840" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="1186,1840 1176,1834 1174,1846" fill="var(--ink)"/>
 
-        <line x1="1186" y1="1734" x2="954" y2="1734" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <polygon points="954,1734 963,1730 963,1738" fill="var(--ink)"/>
-        <text x="720" y="1724" font-size="10.5" fill="var(--ink-dim)">Ok(Command{command: path, args: vec![], env}) — lib.rs:25-31</text>
+        <line x1="1186" y1="1890" x2="954" y2="1890" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="954,1890 963,1886 963,1894" fill="var(--ink)"/>
+        <text x="720" y="1880" font-size="10.5" fill="var(--ink-dim)">Ok(Command{command: path, args: vec![], env}) — lib.rs:25-31</text>
 
-        <line x1="946" y1="1782" x2="714" y2="1782" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <polygon points="714,1782 723,1778 723,1786" fill="var(--ink)"/>
-        <text x="720" y="1772" font-size="10.5" fill="var(--ink-dim)">propagates through since_v0_6_0::Extension's match; the oneshot reply wakes the .call() future — wit.rs:225-238; wasm_host.rs:879-901</text>
+        <line x1="946" y1="1952" x2="714" y2="1952" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,1952 723,1948 723,1956" fill="var(--ink)"/>
+        <text x="720" y="1920" font-size="10.5" fill="var(--ink-dim)">propagates through wit.rs's version-dispatch match (V0_6_0 arm) — wit.rs:232-264</text>
+        <text x="720" y="1936" font-size="10.5" fill="var(--ink-dim)">the oneshot reply wakes the .call() future — wasm_host.rs:879-901</text>
 
         <g>
-          <rect x="630" y="1806" width="470" height="32" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="642" y="1826" font-size="11" fill="var(--ink-dim)">Ok(command.into()) — WIT Command → Zed's extension::Command — wasm_host.rs:94-107</text>
+          <rect x="630" y="1976" width="540" height="32" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="1996" font-size="11" fill="var(--ink-dim)">Ok(command.into()) — WIT Command → Zed's extension::Command — wasm_host.rs:94-107</text>
         </g>
 
-        <line x1="706" y1="1886" x2="474" y2="1886" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <polygon points="474,1886 483,1882 483,1890" fill="var(--ink)"/>
-        <text x="480" y="1876" font-size="10.5" fill="var(--ink-dim)">extension::Command</text>
+        <line x1="706" y1="2048" x2="474" y2="2048" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="474,2048 483,2044 483,2052" fill="var(--ink)"/>
+        <text x="480" y="2038" font-size="10.5" fill="var(--ink-dim)">extension::Command</text>
 
         <g>
-          <rect x="390" y="1910" width="600" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="402" y="1928" font-size="11" fill="var(--ink-dim)">path_from_extension(command.command) resolves relative paths against the extension's work dir;</text>
-          <text x="402" y="1945" font-size="11" fill="var(--ink-dim)">wraps LanguageServerBinary{path, arguments, env} — extension_lsp_adapter.rs:171-251</text>
+          <rect x="390" y="2072" width="600" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="402" y="2090" font-size="11" fill="var(--ink-dim)">path_from_extension(command.command) resolves relative paths against the extension's work dir;</text>
+          <text x="402" y="2107" font-size="11" fill="var(--ink-dim)">wraps LanguageServerBinary{path, arguments, env} — extension_lsp_adapter.rs:171-251</text>
         </g>
 
         <g>
-          <rect x="150" y="1988" width="900" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="162" y="2006" font-size="11" fill="var(--ink-dim)">LanguageServerBinary flows into lsp_store, which spawns it as a subprocess and speaks LSP JSON-RPC directly —</text>
-          <text x="162" y="2023" font-size="11" fill="var(--ink-dim)">the wasm extension is out of the loop from here. See editor-lsp-sequence.html for the initialize handshake onward.</text>
+          <rect x="150" y="2144" width="900" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="2162" font-size="11" fill="var(--ink-dim)">LanguageServerBinary flows into lsp_store, which spawns it as a subprocess and speaks LSP JSON-RPC directly —</text>
+          <text x="162" y="2179" font-size="11" fill="var(--ink-dim)">the wasm extension is out of the loop from here. See editor-lsp-sequence.html for the initialize handshake onward.</text>
         </g>
 
         <!-- lifeline terminators -->
-        <circle cx="230" cy="2072" r="3.5" fill="var(--est)"/>
-        <circle cx="470" cy="2072" r="3.5" fill="var(--lad)"/>
-        <circle cx="710" cy="2072" r="3.5" fill="var(--wh)"/>
-        <circle cx="950" cy="2072" r="3.5" fill="var(--tsk)"/>
-        <circle cx="1190" cy="2072" r="3.5" fill="var(--gst)"/>
+        <circle cx="230" cy="2216" r="3.5" fill="var(--est)"/>
+        <circle cx="470" cy="2216" r="3.5" fill="var(--lad)"/>
+        <circle cx="710" cy="2216" r="3.5" fill="var(--wh)"/>
+        <circle cx="950" cy="2216" r="3.5" fill="var(--tsk)"/>
+        <circle cx="1190" cy="2216" r="3.5" fill="var(--gst)"/>
       </svg>
     </div>
   </div>
@@ -380,7 +383,7 @@
     <p class="sources-label">Sources</p>
     <table class="sources">
       <tbody>
-        <tr><td class="mono">zed-extension/extension.toml:14-16</td><td>[language_servers.googlesql] manifest entry, languages = ["SQL"]</td></tr>
+        <tr><td class="mono">zed-extension/extension.toml:16-18</td><td>[language_servers.googlesql] manifest entry, languages = ["SQL"]</td></tr>
         <tr><td class="mono">zed-extension/src/lib.rs:8-10, 35</td><td>register_extension!(GoogleSqlExtension) macro invocation</td></tr>
         <tr><td class="mono">zed-extension/src/lib.rs:12-32</td><td>Extension::language_server_command impl — worktree.which/shell_env, Command construction</td></tr>
         <tr><td class="mono">zed-extension/Cargo.lock</td><td>zed_extension_api = 0.7.0 — pins which WIT version this repo's wasm targets</td></tr>
@@ -392,13 +395,15 @@
         <tr><td class="mono">crates/extension_host/src/wasm_host.rs:88-112</td><td>WasmExtension::language_server_command (extension::Extension impl)</td></tr>
         <tr><td class="mono">crates/extension_host/src/wasm_host.rs:872-901</td><td>WasmExtension::call — ResourceTable push + mpsc send + oneshot reply</td></tr>
         <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:94-134</td><td>Extension::instantiate_async — version-shim selection (0.7.0 → since_v0_6_0)</td></tr>
-        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:225-238</td><td>call_language_server_command dispatch — language_name not forwarded to the guest call</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:225-231</td><td>Extension::call_language_server_command signature — language_name is a real parameter here</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:232-264</td><td>version-dispatch match — every version arm ≥0.1.0 (incl. V0_6_0, the shim for our pinned 0.7.0) calls the generated WIT binding with only id + resource, silently dropping language_name</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:265-284</td><td>legacy pre-0.1 arms (V0_0_4, V0_0_1) are the only ones that still thread language_name through, via a LanguageServerConfig struct</td></tr>
         <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:26-52</td><td>WorktreeDelegateAdapter — host-side which/shell_env glue the guest calls back into</td></tr>
         <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:54-69</td><td>register_language_server → ExtensionLspAdapter + language_registry.register_lsp_adapter</td></tr>
         <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:160-257</td><td>get_language_server_command → LanguageServerBinary</td></tr>
       </tbody>
     </table>
-    <p class="caveat">The zed-industries/zed source was fetched via the GitHub API from the <span class="mono">main</span> branch at commit <span class="mono">bc990753</span> (2026-07-11) — extension-host internals aren't tagged per Zed release, so treat exact line numbers as a snapshot rather than something pinned to a specific Zed version; the WASM component-model architecture and the mpsc/oneshot message-passing bridge they describe (needed because a wasmtime Store isn't Sync) are stable across recent Zed versions. zed_extension_api 0.7.0 — the version this repo's Cargo.lock actually compiles extension.wasm against — was read from its published docs.rs source, which is exact for that version.</p>
+    <p class="caveat">The zed-industries/zed source was fetched via the GitHub API from the <span class="mono">main</span> branch at commit <span class="mono">65e1c5af258d4c80036467d583691f3f9ded0897</span> (2026-07-11) — extension-host internals aren't tagged per Zed release, so treat exact line numbers as a snapshot rather than something pinned to a specific Zed version; the WASM component-model architecture and the mpsc/oneshot message-passing bridge they describe (needed because a wasmtime Store isn't Sync) are stable across recent Zed versions. Since this diagram was last drawn, Zed added a <span class="mono">since_v0_8_0</span> shim above <span class="mono">since_v0_6_0</span>, but our pinned <span class="mono">zed_extension_api = 0.7.0</span> still resolves to <span class="mono">since_v0_6_0</span> (its version range is unchanged: 0.6.0 ≤ 0.7.0 ≤ its own MAX_VERSION of 0.7.0, below since_v0_8_0's MIN_VERSION of 0.8.0). zed_extension_api 0.7.0 — the version this repo's Cargo.lock actually compiles extension.wasm against — was read from its published docs.rs source, which is exact for that version.</p>
   </footer>
 </div>
 

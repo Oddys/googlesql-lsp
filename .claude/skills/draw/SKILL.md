@@ -114,6 +114,60 @@ browser.
   Never collapse multiple sources onto one line; a reader scanning for a
   specific reference needs to find it without parsing a run-on sentence.
 
+## Before calling it done — run the layout verifier, don't eyeball it
+
+Hand-written SVG text never reliably fits its box or clears an arrow just
+because the numbers look plausible — actual glyph width depends on the
+rendering font's real metrics, and a cubic Bézier's visual peak is *not*
+its control-point y (a symmetric curve's peak sits 25% of the way from
+the control point toward the endpoint, `0.25*endpoint + 0.75*control`,
+not at the control point itself). Both of these have shipped broken in
+this repo's diagrams before — text overflowing note boxes and lane
+headers, and curved guest→host callback arrows drawn directly through
+their own caption text — and neither was visible from reading the SVG
+source, only from how it actually renders.
+
+After writing (or editing) the file, and again after any edit that
+touches box dimensions, text content, or path/line coordinates, run:
+
+```
+.claude/skills/draw/scripts/verify-diagram.sh path/to/dig/diagrams/<name>.html
+```
+
+This renders the diagram in headless Chrome and checks, against the
+*actual rendered geometry* (`getBBox()`, `getPointAtLength()` — not
+hand-computed estimates), for:
+- text wider than the `<rect>` it sits in (any note box or lane header),
+- text extending past the SVG viewBox's margins,
+- an arrow or curve physically crossing through any text's bounding box
+  (its own caption or another one).
+
+It exits 0 and prints `OK` when clean, or exits 1 with a JSON list of
+every offending element (box/curve coordinates, overflow amount, the
+crossing point) when not. **Do not present the diagram as finished, and
+do not add it to `dig/DIAGRAMS.md`, while this reports issues.** Fix the
+reported elements and re-run — don't just eyeball the next screenshot,
+since a few pixels of overflow or a shallow curve-through-text crossing
+can be easy to miss even when looking right at it (see
+`dig/diagrams/zed-extension-registration-sequence.html`'s git history
+for a worked example of both defect classes and their fixes).
+
+If no Chrome/Chromium is available, the script says so; take an actual
+screenshot (e.g. via a headless-browser tool) and inspect it at 100%
+zoom instead of skipping verification — don't fall back to reading the
+SVG source and eyeballing the numbers, which is exactly what let both
+defect classes ship originally.
+
+When fixing overflow, prefer (in order): shortening the wording, then
+widening the box if room exists before the next lane/lifeline, then
+splitting into more lines — and when a box grows taller, either confirm
+there's already enough gap before the next element to absorb it, or
+shift every following element down and re-run the verifier to confirm
+nothing else now collides. When fixing an arrow/text collision, don't
+just nudge the control point by eye — either compute the target peak
+with the formula above and solve for the control point, or increase
+peak/caption clearance and re-run the verifier to confirm.
+
 ## Template
 
 Start every diagram from this skeleton (it's the exact pattern already
@@ -343,6 +397,9 @@ together, per the hard constraint above.
 - Prefer several small, focused diagrams over one diagram trying to show
   the entire system — split by protocol phase, by subsystem, or by call
   path if a single sequence would need more than ~8-10 messages.
+- After writing the file, run `scripts/verify-diagram.sh` on it (see
+  "Before calling it done" above) — fix anything it reports before
+  moving on.
 - After writing the file, tell the user the exact path and that they can
   open it directly in a browser (`file://` works, no server needed).
 - Once done, ask if the user wants the diagram kept as-is, adjusted, or
