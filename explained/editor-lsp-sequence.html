@@ -295,7 +295,7 @@
 
         <g>
           <rect x="638" y="304" width="404" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if the binary wasn't found: window/showMessage (error) instead — backend.rs:110</text>
+          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if the binary wasn't found: window/showMessage (error) instead — backend.rs:119&ndash;127</text>
         </g>
 
         <!-- ================= PHASE: Edit cycle ================= -->
@@ -414,6 +414,7 @@
         <tr><td class="mono">backend.rs:131&ndash;156</td><td><span class="mono">did_open</span> / <span class="mono">did_change</span> / <span class="mono">did_save</span> / <span class="mono">did_close</span></td></tr>
         <tr><td class="mono">backend.rs:41&ndash;69</td><td>debounce logic</td></tr>
         <tr><td class="mono">parser.rs:55&ndash;63</td><td>subprocess call</td></tr>
+        <tr><td class="mono">diagnostics.rs:25&ndash;52</td><td><span class="mono">parse_output</span> — regexes <span class="mono">ERROR: ... [at L:C]</span> lines into <span class="mono">Diagnostic</span>s</td></tr>
       </tbody>
     </table>
     <p>All method names and the 250ms debounce constant are taken verbatim from the current source, not the LSP spec in general.</p>
