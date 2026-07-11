@@ -67,6 +67,19 @@ browser.
   `explained/editor-lsp-sequence.html` in this repo. Skip it for short
   diagrams and for architecture/flowchart diagrams, where there's no
   header-scrolls-away problem.
+  - **Don't let the sticky copy render at the same time as the real
+    header.** `position: sticky` keeps `.lane-sticky` in normal document
+    flow until it would scroll past the viewport top — so at the very
+    top of the page, both it *and* the real header `<g>` (drawn inside
+    the main SVG, right below it) are on-screen at once, reading as a
+    duplicated header row. Wrap the real header `<g>` blocks in the main
+    SVG in `<g id="lane-header">` and hide `.lane-sticky` while that
+    element is still visible, showing it only once the real header has
+    scrolled out of frame — see the `IntersectionObserver` block at the
+    end of the template's `<script>`. Do the visibility check
+    synchronously on load (via `getBoundingClientRect()`) as well as on
+    intersection change, so there's no flash of the duplicate before JS
+    runs.
 - Cite sources in a footer: `path/to/file.rs:12-34` for every actor or
   message that came from a specific place in the code.
 
@@ -210,6 +223,12 @@ together, per the hard constraint above.
       <svg class="diagram" viewBox="0 0 1080 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<describe the diagram for screen readers>">
         <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like explained/editor-lsp-sequence.html -->
         <!-- architecture diagrams: grouped boxes with rx corners, thin connecting lines, arrowheads for direction -->
+        <!--
+          Tall sequence diagrams only: wrap the real header <g> blocks (the same
+          rects/text as the .lane-sticky copy above, id'd so the script at the
+          bottom can hide the sticky copy while this is on-screen).
+          <g id="lane-header"> ... one <g> per actor box ... </g>
+        -->
       </svg>
     </div>
   </div>
@@ -248,6 +267,23 @@ together, per the hard constraint above.
     main.addEventListener('scroll', function () {
       header.scrollLeft = main.scrollLeft;
     });
+  })();
+
+  /* tall sequence diagrams only — show the sticky lane header only once the real
+     header (id="lane-header", inside the main SVG) has scrolled out of view;
+     otherwise both are visible at once at the top of the page and look duplicated */
+  (function () {
+    var sticky = document.querySelector('.lane-sticky');
+    var realHeader = document.getElementById('lane-header');
+    if (!sticky || !realHeader) return;
+    function sync() {
+      var r = realHeader.getBoundingClientRect();
+      sticky.style.display = r.bottom > 0 ? 'none' : '';
+    }
+    sync();
+    var obs = new IntersectionObserver(sync, { threshold: [0, 1] });
+    obs.observe(realHeader);
+    window.addEventListener('resize', sync);
   })();
 </script>
 ```
