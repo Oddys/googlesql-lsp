@@ -1,0 +1,450 @@
+<title>Zed ⇄ googlesql extension: registration and low-level interaction</title>
+<style>
+  :root {
+    --paper: #f5f4ef;
+    --panel: #ffffff;
+    --ink: #1c2027;
+    --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16);
+    --rule-soft: rgba(28, 32, 39, 0.09);
+    --note-bg: #fbf9f3;
+    --note-border: #d8cfb8;
+    --est: #4b5563;
+    --lad: #3d5a8a; --lad-soft: #e6ebf4;
+    --wh: #196b73; --wh-soft: #e4f0ef;
+    --tsk: #a8691f; --tsk-soft: #f4e8d7;
+    --gst: #6d4e7c; --gst-soft: #eee6f1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12151a; --panel: #171b21; --ink: #e6e8ec; --ink-dim: #929aa8;
+      --rule: rgba(230, 232, 236, 0.18); --rule-soft: rgba(230, 232, 236, 0.09);
+      --note-bg: #1c1a14; --note-border: #453c28;
+      --est: #9aa4b2;
+      --lad: #8fb0e6; --lad-soft: #1d2733;
+      --wh: #57bcc4; --wh-soft: #172b2c;
+      --tsk: #dba25b; --tsk-soft: #2c2214;
+      --gst: #c6a9d6; --gst-soft: #271f2b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151a; --panel: #171b21; --ink: #e6e8ec; --ink-dim: #929aa8;
+    --rule: rgba(230, 232, 236, 0.18); --rule-soft: rgba(230, 232, 236, 0.09);
+    --note-bg: #1c1a14; --note-border: #453c28;
+    --est: #9aa4b2;
+    --lad: #8fb0e6; --lad-soft: #1d2733;
+    --wh: #57bcc4; --wh-soft: #172b2c;
+    --tsk: #dba25b; --tsk-soft: #2c2214;
+    --gst: #c6a9d6; --gst-soft: #271f2b;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f4ef; --panel: #ffffff; --ink: #1c2027; --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16); --rule-soft: rgba(28, 32, 39, 0.09);
+    --note-bg: #fbf9f3; --note-border: #d8cfb8;
+    --est: #4b5563;
+    --lad: #3d5a8a; --lad-soft: #e6ebf4;
+    --wh: #196b73; --wh-soft: #e4f0ef;
+    --tsk: #a8691f; --tsk-soft: #f4e8d7;
+    --gst: #6d4e7c; --gst-soft: #eee6f1;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 20px 64px;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .theme-toggle {
+    flex: none; width: 38px; height: 38px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 9px; border: 1px solid var(--rule); background: var(--panel);
+    color: var(--ink-dim); cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--wh); border-color: var(--wh); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--wh); outline-offset: 2px; }
+  .theme-toggle svg { width: 18px; height: 18px; }
+  .theme-toggle .icon-moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: inline-flex; }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 12px; letter-spacing: 0.04em;
+    color: var(--wh); margin: 0 0 10px; line-height: 1.5;
+  }
+  h1 { font-size: 25px; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+  header p { margin: 0; max-width: 78ch; color: var(--ink-dim); font-size: 14.5px; line-height: 1.55; }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; row-gap: 10px; margin-top: 18px; font-size: 12.5px; color: var(--ink-dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend svg { flex: none; }
+  .diagram-shell { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px; }
+  .diagram-scroll { overflow-x: auto; }
+  .lane-sticky {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--panel); border-bottom: 1px solid var(--rule);
+    border-radius: 10px 10px 0 0;
+    margin: -8px -8px 8px;
+    padding: 6px 8px 2px;
+  }
+  .lane-sticky-scroll { overflow: hidden; }
+  .lane-sticky-scroll svg { display: block; width: 100%; min-width: 900px; height: auto; }
+  svg.diagram { display: block; min-width: 900px; width: 100%; height: auto; }
+  text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+  footer { margin-top: 22px; color: var(--ink-dim); font-size: 12px; }
+  footer .mono { color: var(--ink-dim); }
+  .sources-label { margin: 0 0 8px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); }
+  .sources { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .sources tr { border-top: 1px solid var(--rule-soft); }
+  .sources tr:first-child { border-top: none; }
+  .sources td { padding: 4px 16px 4px 0; vertical-align: top; line-height: 1.6; }
+  .sources td:first-child { white-space: nowrap; color: var(--ink); }
+  footer > p.caveat { margin: 14px 0 0; max-width: 92ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="header-row">
+      <div class="header-text">
+        <p class="eyebrow">zed-extension/src/lib.rs, extension.toml (this repo) — cross-referenced against zed-industries/zed @ bc990753 (extension_host, wasm_host, language_extension crates)</p>
+        <h1>Zed ⇄ googlesql extension: registration and low-level interaction</h1>
+        <p>
+          How Zed discovers this repo's <span class="mono">zed-extension</span>, compiles and instantiates it as a
+          WebAssembly component, and later calls back into it — every hop across the WASM ABI, not just the
+          LSP-visible surface. <strong>Phase 1</strong> is extension load + language-server registration at startup.
+          <strong>Phase 2</strong> traces one <span class="mono">language_server_command</span> call end to end,
+          including the guest→host callbacks it makes to resolve the <span class="mono">googlesql-lsp</span> binary's
+          path and environment. Once Zed has a <span class="mono">Command</span>, it spawns the binary and speaks
+          LSP JSON-RPC directly — see <span class="mono">editor-lsp-sequence.html</span> for that handshake onward.
+        </p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+    <div class="legend">
+      <span><svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="none" stroke="var(--ink-dim)" stroke-width="1.4" stroke-dasharray="5,3"/></svg> Zed editor internals (zed-industries/zed)</span>
+      <span><svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="none" stroke="var(--ink-dim)" stroke-width="1.7"/></svg> this repo's guest code</span>
+      <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink-dim)" stroke-width="1.6"/><polygon points="25,5 18,2 18,8" fill="var(--ink-dim)"/></svg> call</span>
+      <span><svg width="26" height="10"><line x1="1" y1="5" x2="25" y2="5" stroke="var(--ink-dim)" stroke-width="1.6" stroke-dasharray="4,3"/><polygon points="25,5 18,2 18,8" fill="var(--ink-dim)"/></svg> return value</span>
+      <span><svg width="30" height="14"><path d="M1,12 C10,2 20,2 29,12" fill="none" stroke="var(--ink-dim)" stroke-width="1.6"/><polygon points="29,12 22,10 24,17" fill="var(--ink-dim)"/></svg> guest→host WIT import (inline, no channel hop)</span>
+      <span><svg width="30" height="14"><rect x="1" y="1" width="28" height="12" rx="3" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/></svg> implementation detail</span>
+    </div>
+  </header>
+
+  <div class="diagram-shell">
+    <div class="lane-sticky">
+      <div class="lane-sticky-scroll">
+        <svg viewBox="0 0 1320 76" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+          <g>
+            <rect x="140" y="20" width="180" height="54" rx="8" fill="var(--panel)" stroke="var(--est)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="230" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionStore</text>
+            <text x="230" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_host.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="380" y="20" width="180" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="470" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionLspAdapter</text>
+            <text x="470" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_lsp_adapter.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="620" y="20" width="180" height="54" rx="8" fill="var(--wh-soft)" stroke="var(--wh)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="710" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">WasmHost</text>
+            <text x="710" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">wasm_host.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="860" y="20" width="180" height="54" rx="8" fill="var(--tsk-soft)" stroke="var(--tsk)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="950" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">extension task</text>
+            <text x="950" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">dedicated tokio task (Zed)</text>
+          </g>
+          <g>
+            <rect x="1100" y="20" width="180" height="54" rx="8" fill="var(--gst-soft)" stroke="var(--gst)" stroke-width="1.7"/>
+            <text x="1190" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">WASM guest</text>
+            <text x="1190" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">zed-extension/src/lib.rs</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="diagram-scroll">
+      <svg class="diagram" viewBox="0 0 1320 2115" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of Zed loading and calling the googlesql Zed extension across the WASM component boundary">
+
+        <!-- lane x: ExtensionStore 230, ExtensionLspAdapter 470, WasmHost 710, extension task 950, WASM guest 1190 -->
+
+        <g id="lane-header">
+          <g>
+            <rect x="140" y="20" width="180" height="54" rx="8" fill="var(--panel)" stroke="var(--est)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="230" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionStore</text>
+            <text x="230" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_host.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="380" y="20" width="180" height="54" rx="8" fill="var(--lad-soft)" stroke="var(--lad)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="470" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">ExtensionLspAdapter</text>
+            <text x="470" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">extension_lsp_adapter.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="620" y="20" width="180" height="54" rx="8" fill="var(--wh-soft)" stroke="var(--wh)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="710" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">WasmHost</text>
+            <text x="710" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">wasm_host.rs (Zed)</text>
+          </g>
+          <g>
+            <rect x="860" y="20" width="180" height="54" rx="8" fill="var(--tsk-soft)" stroke="var(--tsk)" stroke-width="1.4" stroke-dasharray="5,3"/>
+            <text x="950" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">extension task</text>
+            <text x="950" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">dedicated tokio task (Zed)</text>
+          </g>
+          <g>
+            <rect x="1100" y="20" width="180" height="54" rx="8" fill="var(--gst-soft)" stroke="var(--gst)" stroke-width="1.7"/>
+            <text x="1190" y="42" text-anchor="middle" font-size="14" font-weight="600" fill="var(--ink)">WASM guest</text>
+            <text x="1190" y="59" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)" class="mono">zed-extension/src/lib.rs</text>
+          </g>
+        </g>
+
+        <!-- lifelines -->
+        <line x1="230" y1="74" x2="230" y2="2072" stroke="var(--est)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="470" y1="74" x2="470" y2="2072" stroke="var(--lad)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="710" y1="74" x2="710" y2="2072" stroke="var(--wh)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="950" y1="74" x2="950" y2="2072" stroke="var(--tsk)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="1190" y1="74" x2="1190" y2="2072" stroke="var(--gst)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+
+        <!-- ================= PHASE 1: DISCOVERY & REGISTRATION ================= -->
+        <text x="20" y="100" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">PHASE 1 — EXTENSION LOAD &amp; REGISTRATION (Zed startup / extensions dir change)</text>
+        <line x1="20" y1="112" x2="1300" y2="112" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <g>
+          <rect x="150" y="136" width="700" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="154" font-size="11" fill="var(--ink-dim)">reload() rescans installed_dir and parses each extension.toml via toml::from_str into ExtensionManifest —</text>
+          <text x="162" y="171" font-size="11" fill="var(--ink-dim)">ours declares [language_servers.googlesql] name="googlesql" languages=["SQL"] — extension_manifest.rs:396</text>
+        </g>
+
+        <line x1="234" y1="232" x2="706" y2="232" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="706,232 697,228 697,236" fill="var(--ink)"/>
+        <text x="240" y="222" font-size="12.5" class="mono" fill="var(--ink)">WasmExtension::load(extension_dir, manifest, wasm_host, cx)</text>
+        <text x="240" y="246" font-size="10.5" fill="var(--ink-dim)">reads extension.wasm bytes off disk via fs.open_sync — wasm_host.rs:847-869</text>
+
+        <g>
+          <rect x="630" y="276" width="450" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="294" font-size="11" fill="var(--ink-dim)">parse_wasm_extension_version(): scans a custom wasm section named "zed:api-version"</text>
+          <text x="642" y="311" font-size="11" fill="var(--ink-dim)">(6 bytes = 3×u16 BE) → 0.7.0; Component::from_binary compiles it — wasm_host.rs:651,807-844</text>
+        </g>
+
+        <g>
+          <rect x="630" y="348" width="470" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="366" font-size="11" fill="var(--ink-dim)">Store::new(WasmState{...}); Extension::instantiate_async picks the WIT compatibility shim for</text>
+          <text x="642" y="383" font-size="11" fill="var(--ink-dim)">0.7.0 → since_v0_6_0 (0.6.0 ≤ 0.7.0 &lt; 0.8.0), linking host imports — wasm_host.rs:660-684; wit.rs:118-134</text>
+        </g>
+
+        <line x1="714" y1="444" x2="1186" y2="444" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="1186,444 1177,440 1177,448" fill="var(--ink)"/>
+        <text x="720" y="434" font-size="12.5" class="mono" fill="var(--ink)">extension.call_init_extension(&amp;mut store)</text>
+        <text x="720" y="458" font-size="10.5" fill="var(--ink-dim)">host → guest: invokes the wasm-exported "init-extension" fn — wasm_host.rs:687. Runs directly here,</text>
+        <text x="720" y="472" font-size="10.5" fill="var(--ink-dim)">before the mpsc message-loop task below even exists.</text>
+
+        <g>
+          <rect x="1000" y="496" width="300" height="64" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="1012" y="514" font-size="11" fill="var(--ink-dim)">register_extension!(GoogleSqlExtension) expands to</text>
+          <text x="1012" y="530" font-size="11" fill="var(--ink-dim)">extern "C" fn __init_extension() → register_extension(</text>
+          <text x="1012" y="546" font-size="11" fill="var(--ink-dim)">|| Box::new(GoogleSqlExtension::new())) — lib.rs:8-10,35</text>
+        </g>
+
+        <line x1="1186" y1="602" x2="714" y2="602" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,602 723,598 723,606" fill="var(--ink)"/>
+        <text x="720" y="594" font-size="10.5" fill="var(--ink-dim)">() — extension initialized; singleton stored in guest-global state</text>
+
+        <line x1="714" y1="656" x2="946" y2="656" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="946,656 937,652 937,660" fill="var(--ink)"/>
+        <text x="720" y="646" font-size="12.5" class="mono" fill="var(--ink)">gpui_tokio::Tokio::spawn(extension_task)</text>
+        <text x="720" y="670" font-size="10.5" fill="var(--ink-dim)">owns (Extension, Store&lt;WasmState&gt;), drains an mpsc rx of boxed closures — Store isn't Sync, so every</text>
+        <text x="720" y="684" font-size="10.5" fill="var(--ink-dim)">future call funnels through this one task — wasm_host.rs:691-717</text>
+
+        <line x1="234" y1="726" x2="466" y2="726" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="466,726 457,722 457,730" fill="var(--ink)"/>
+        <text x="240" y="716" font-size="12.5" class="mono" fill="var(--ink)">proxy.register_language_server(extension, "googlesql", "SQL")</text>
+        <text x="240" y="740" font-size="10.5" fill="var(--ink-dim)">for each language in manifest.language_servers["googlesql"].languages() — extension_host.rs:1536-1543</text>
+
+        <g>
+          <rect x="390" y="764" width="440" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="402" y="782" font-size="11" fill="var(--ink-dim)">wraps as ExtensionLspAdapter{extension, language_server_id, language};</text>
+          <text x="402" y="799" font-size="11" fill="var(--ink-dim)">language_registry.register_lsp_adapter("SQL", adapter) — extension_lsp_adapter.rs:54-69</text>
+        </g>
+
+        <!-- ================= PHASE 2: LOW-LEVEL INTERACTION ================= -->
+        <text x="20" y="864" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">PHASE 2 — get_language_server_command (a .sql buffer needs a server)</text>
+        <line x1="20" y1="876" x2="1300" y2="876" stroke="var(--rule-soft)" stroke-width="1"/>
+
+        <g>
+          <rect x="390" y="900" width="540" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="402" y="918" font-size="11" fill="var(--ink-dim)">a SQL buffer needs a server; lsp_store calls the registered adapter's</text>
+          <text x="402" y="935" font-size="11" fill="var(--ink-dim)">DynLspInstaller::get_language_server_command (buffer-open/language-match not diagrammed)</text>
+        </g>
+
+        <line x1="474" y1="1002" x2="706" y2="1002" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="706,1002 697,998 697,1006" fill="var(--ink)"/>
+        <text x="480" y="992" font-size="12.5" class="mono" fill="var(--ink)">self.extension.language_server_command("googlesql", "SQL", delegate)</text>
+        <text x="480" y="1016" font-size="10.5" fill="var(--ink-dim)">delegate wrapped as WorktreeDelegateAdapter — extension_lsp_adapter.rs:170-178</text>
+
+        <g>
+          <rect x="630" y="1040" width="480" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="1058" font-size="11" fill="var(--ink-dim)">WasmExtension::call(): pushes WorktreeDelegateAdapter into store.table (ResourceTable)</text>
+          <text x="642" y="1075" font-size="11" fill="var(--ink-dim)">→ resource handle; sends closure over tx, awaits a oneshot reply — wasm_host.rs:88-112,872-901</text>
+        </g>
+
+        <line x1="714" y1="1136" x2="946" y2="1136" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="946,1136 937,1132 937,1140" fill="var(--ink)"/>
+        <text x="720" y="1126" font-size="12.5" class="mono" fill="var(--ink)">closure delivered over the mpsc channel</text>
+
+        <line x1="954" y1="1190" x2="1186" y2="1190" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="1186,1190 1177,1186 1177,1194" fill="var(--ink)"/>
+        <text x="960" y="1180" font-size="12.5" class="mono" fill="var(--ink)">call_language_server_command(store, "googlesql", resource)</text>
+        <text x="960" y="1204" font-size="10.5" fill="var(--ink-dim)">host → guest across the WASM ABI (since_v0_6_0::Extension); id as a WIT string, worktree as</text>
+        <text x="960" y="1218" font-size="10.5" fill="var(--ink-dim)">a WIT resource handle — wit.rs:225-238</text>
+
+        <g>
+          <rect x="390" y="1240" width="850" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="402" y="1258" font-size="11" fill="var(--ink-dim)">language_name IS available up at the host wrapper (extension_lsp_adapter.rs, wasm_host.rs:88-93) but is</text>
+          <text x="402" y="1275" font-size="11" fill="var(--ink-dim)">NOT forwarded across the WASM ABI — the guest's language_server_command only ever sees language_server_id + worktree.</text>
+        </g>
+
+        <g>
+          <rect x="1000" y="1312" width="300" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="1012" y="1330" font-size="11" fill="var(--ink-dim)">dispatches to &lt;GoogleSqlExtension as</text>
+          <text x="1012" y="1347" font-size="11" fill="var(--ink-dim)">zed::Extension&gt;::language_server_command — lib.rs:12-32</text>
+        </g>
+
+        <path d="M 1186 1424 C 950 1382 700 1382 474 1424" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <polygon points="474,1424 484,1418 486,1430" fill="var(--ink)"/>
+        <text x="830" y="1392" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.which("googlesql-lsp")</text>
+        <text x="830" y="1408" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:19</text>
+
+        <path d="M 474 1478 C 700 1436 950 1436 1186 1478" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="1186,1478 1176,1472 1174,1484" fill="var(--ink)"/>
+        <text x="830" y="1446" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Some(path) | None</text>
+        <text x="830" y="1462" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::which → delegate.which(...) [outside this repo] — extension_lsp_adapter.rs:42-47</text>
+
+        <g>
+          <rect x="700" y="1502" width="540" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="712" y="1520" font-size="11" fill="var(--ink-dim)">which() = None ⇒ guest returns Err("could not find googlesql-lsp on PATH…")</text>
+          <text x="712" y="1537" font-size="11" fill="var(--ink-dim)">immediately, skipping the rest of this call — lib.rs:19-23</text>
+        </g>
+
+        <path d="M 1186 1626 C 950 1584 700 1584 474 1626" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+        <polygon points="474,1626 484,1620 486,1632" fill="var(--ink)"/>
+        <text x="830" y="1594" text-anchor="middle" font-size="12" class="mono" fill="var(--ink)">worktree.shell_env()</text>
+        <text x="830" y="1610" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">WIT import: guest → host, inline within the current async task — lib.rs:30</text>
+
+        <path d="M 474 1680 C 700 1638 950 1638 1186 1680" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="1186,1680 1176,1674 1174,1686" fill="var(--ink)"/>
+        <text x="830" y="1648" text-anchor="middle" font-size="11.5" fill="var(--ink-dim)">Vec&lt;(String,String)&gt;</text>
+        <text x="830" y="1664" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via WorktreeDelegateAdapter::shell_env → delegate.shell_env() — extension_lsp_adapter.rs:49-51</text>
+
+        <line x1="1186" y1="1734" x2="954" y2="1734" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="954,1734 963,1730 963,1738" fill="var(--ink)"/>
+        <text x="720" y="1724" font-size="10.5" fill="var(--ink-dim)">Ok(Command{command: path, args: vec![], env}) — lib.rs:25-31</text>
+
+        <line x1="946" y1="1782" x2="714" y2="1782" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,1782 723,1778 723,1786" fill="var(--ink)"/>
+        <text x="720" y="1772" font-size="10.5" fill="var(--ink-dim)">propagates through since_v0_6_0::Extension's match; the oneshot reply wakes the .call() future — wit.rs:225-238; wasm_host.rs:879-901</text>
+
+        <g>
+          <rect x="630" y="1806" width="470" height="32" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="642" y="1826" font-size="11" fill="var(--ink-dim)">Ok(command.into()) — WIT Command → Zed's extension::Command — wasm_host.rs:94-107</text>
+        </g>
+
+        <line x1="706" y1="1886" x2="474" y2="1886" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="474,1886 483,1882 483,1890" fill="var(--ink)"/>
+        <text x="480" y="1876" font-size="10.5" fill="var(--ink-dim)">extension::Command</text>
+
+        <g>
+          <rect x="390" y="1910" width="600" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="402" y="1928" font-size="11" fill="var(--ink-dim)">path_from_extension(command.command) resolves relative paths against the extension's work dir;</text>
+          <text x="402" y="1945" font-size="11" fill="var(--ink-dim)">wraps LanguageServerBinary{path, arguments, env} — extension_lsp_adapter.rs:171-251</text>
+        </g>
+
+        <g>
+          <rect x="150" y="1988" width="900" height="48" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="2006" font-size="11" fill="var(--ink-dim)">LanguageServerBinary flows into lsp_store, which spawns it as a subprocess and speaks LSP JSON-RPC directly —</text>
+          <text x="162" y="2023" font-size="11" fill="var(--ink-dim)">the wasm extension is out of the loop from here. See editor-lsp-sequence.html for the initialize handshake onward.</text>
+        </g>
+
+        <!-- lifeline terminators -->
+        <circle cx="230" cy="2072" r="3.5" fill="var(--est)"/>
+        <circle cx="470" cy="2072" r="3.5" fill="var(--lad)"/>
+        <circle cx="710" cy="2072" r="3.5" fill="var(--wh)"/>
+        <circle cx="950" cy="2072" r="3.5" fill="var(--tsk)"/>
+        <circle cx="1190" cy="2072" r="3.5" fill="var(--gst)"/>
+      </svg>
+    </div>
+  </div>
+
+  <footer>
+    <p class="sources-label">Sources</p>
+    <table class="sources">
+      <tbody>
+        <tr><td class="mono">zed-extension/extension.toml:14-16</td><td>[language_servers.googlesql] manifest entry, languages = ["SQL"]</td></tr>
+        <tr><td class="mono">zed-extension/src/lib.rs:8-10, 35</td><td>register_extension!(GoogleSqlExtension) macro invocation</td></tr>
+        <tr><td class="mono">zed-extension/src/lib.rs:12-32</td><td>Extension::language_server_command impl — worktree.which/shell_env, Command construction</td></tr>
+        <tr><td class="mono">zed-extension/Cargo.lock</td><td>zed_extension_api = 0.7.0 — pins which WIT version this repo's wasm targets</td></tr>
+        <tr><td class="mono">docs.rs/zed_extension_api/0.7.0/source/src/extension_api.rs</td><td>register_extension! macro expansion; Extension trait + default methods</td></tr>
+        <tr><td class="mono">crates/extension/src/extension_manifest.rs:396</td><td>toml::from_str parses extension.toml into ExtensionManifest</td></tr>
+        <tr><td class="mono">crates/extension_host/src/extension_host.rs:1502-1544</td><td>reload(): WasmExtension::load, then register_language_server per manifest.language_servers</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host.rs:633-727</td><td>WasmHost::load_extension — version parse, Component::from_binary, Store::new, instantiate_async, call_init_extension, spawn message-loop task</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host.rs:807-844</td><td>parse_wasm_extension_version — "zed:api-version" custom section, 6 bytes = 3×u16 BE</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host.rs:88-112</td><td>WasmExtension::language_server_command (extension::Extension impl)</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host.rs:872-901</td><td>WasmExtension::call — ResourceTable push + mpsc send + oneshot reply</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:94-134</td><td>Extension::instantiate_async — version-shim selection (0.7.0 → since_v0_6_0)</td></tr>
+        <tr><td class="mono">crates/extension_host/src/wasm_host/wit.rs:225-238</td><td>call_language_server_command dispatch — language_name not forwarded to the guest call</td></tr>
+        <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:26-52</td><td>WorktreeDelegateAdapter — host-side which/shell_env glue the guest calls back into</td></tr>
+        <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:54-69</td><td>register_language_server → ExtensionLspAdapter + language_registry.register_lsp_adapter</td></tr>
+        <tr><td class="mono">crates/language_extension/src/extension_lsp_adapter.rs:160-257</td><td>get_language_server_command → LanguageServerBinary</td></tr>
+      </tbody>
+    </table>
+    <p class="caveat">The zed-industries/zed source was fetched via the GitHub API from the <span class="mono">main</span> branch at commit <span class="mono">bc990753</span> (2026-07-11) — extension-host internals aren't tagged per Zed release, so treat exact line numbers as a snapshot rather than something pinned to a specific Zed version; the WASM component-model architecture and the mpsc/oneshot message-passing bridge they describe (needed because a wasmtime Store isn't Sync) are stable across recent Zed versions. zed_extension_api 0.7.0 — the version this repo's Cargo.lock actually compiles extension.wasm against — was read from its published docs.rs source, which is exact for that version.</p>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    var KEY = 'googlesql-lsp-diagram-theme';
+    function systemPrefersDark() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function apply(theme) {
+      root.setAttribute('data-theme', theme);
+      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    apply(stored === 'dark' || stored === 'light' ? stored : (systemPrefersDark() ? 'dark' : 'light'));
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+
+  (function () {
+    var main = document.querySelector('.diagram-scroll');
+    var header = document.querySelector('.lane-sticky-scroll');
+    if (!main || !header) return;
+    main.addEventListener('scroll', function () {
+      header.scrollLeft = main.scrollLeft;
+    });
+  })();
+
+  (function () {
+    var sticky = document.querySelector('.lane-sticky');
+    var realHeader = document.getElementById('lane-header');
+    if (!sticky || !realHeader) return;
+    function sync() {
+      var r = realHeader.getBoundingClientRect();
+      sticky.style.display = r.bottom > 0 ? 'none' : '';
+    }
+    sync();
+    var obs = new IntersectionObserver(sync, { threshold: [0, 1] });
+    obs.observe(realHeader);
+    window.addEventListener('resize', sync);
+  })();
+</script>
