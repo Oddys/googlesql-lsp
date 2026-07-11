@@ -262,9 +262,9 @@
         </g>
 
         <!-- lifelines -->
-        <line x1="300" y1="72" x2="300" y2="1560" stroke="var(--editor)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
-        <line x1="630" y1="72" x2="630" y2="1560" stroke="var(--server)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
-        <line x1="950" y1="72" x2="950" y2="1560" stroke="var(--proc)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
+        <line x1="300" y1="74" x2="300" y2="1560" stroke="var(--editor)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="630" y1="74" x2="630" y2="1560" stroke="var(--server)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="950" y1="74" x2="950" y2="1560" stroke="var(--proc)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
 
         <!-- ================= PHASE: Handshake ================= -->
         <text x="40" y="106" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">HANDSHAKE</text>
@@ -295,7 +295,7 @@
 
         <g>
           <rect x="638" y="304" width="404" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if the binary wasn't found: window/showMessage (error) instead — backend.rs:119&ndash;127</text>
+          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if binary missing: window/showMessage (error) — backend.rs:119&ndash;127</text>
         </g>
 
         <!-- ================= PHASE: Edit cycle ================= -->
@@ -326,7 +326,7 @@
         </g>
 
         <!-- after debounce: spawn_blocking -->
-        <rect x="626" y="660" width="8" height="120" rx="2" fill="var(--server)" opacity="0.5"/>
+        <rect x="626" y="660" width="8" height="178" rx="2" fill="var(--server)" opacity="0.5"/>
         <text x="304" y="655" font-size="11" fill="var(--ink-dim)">— 250ms pass with no further edits —</text>
 
         <rect x="946" y="682" width="8" height="70" rx="2" fill="var(--proc)" opacity="0.6"/>
@@ -383,7 +383,7 @@
         <text x="40" y="1258" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">SHUTDOWN</text>
         <line x1="40" y1="1270" x2="1050" y2="1270" stroke="var(--rule-soft)" stroke-width="1"/>
 
-        <rect x="626" y="1290" width="8" height="34" rx="2" fill="var(--server)" opacity="0.5"/>
+        <rect x="626" y="1290" width="8" height="58" rx="2" fill="var(--server)" opacity="0.5"/>
         <line x1="300" y1="1296" x2="626" y2="1296" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="626,1296 617,1292 617,1300" fill="var(--ink)"/>
         <text x="304" y="1288" font-size="12.5" class="mono" fill="var(--ink)">shutdown</text>

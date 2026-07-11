@@ -104,6 +104,71 @@ function runLayoutVerification() {
     }
   });
 
-  document.getElementById('verify-report').textContent = JSON.stringify({ boxIssues, globalIssues, pathIssues }, null, 2);
+  //   4. activationIssues — a request/response <line> (stroke="var(--ink)",
+  //      this repo's convention for "real" message arrows, as opposed to
+  //      symbolic/self-referential lines drawn in an actor's own accent
+  //      color) whose endpoint sits on a lifeline that has an activation
+  //      bar (a thin rect, width<=10, rx!=6/8 to exclude note boxes and
+  //      lane-header boxes) in the same PHASE band, but lands more than
+  //      SLACK px outside every such bar's [y, y+height] span. This is the
+  //      "response arrow floats below the bar that supposedly sent it"
+  //      defect class — see dig/diagrams/editor-lsp-sequence.html's git
+  //      history (fixed 2026-07-11) for the worked example. Matches are
+  //      scoped to the band between consecutive PHASE-divider lines
+  //      (stroke="var(--rule-soft)", full-width horizontal) — without that,
+  //      a lifeline's x gets reused across unrelated phases many hundreds
+  //      of px apart, and "nearest rect anywhere in the file" produces
+  //      false matches across phases that were never meant to relate.
+  const SLACK = 26; // established padding in this repo's diagrams tops out ~22px
+  const bandBounds = [0];
+  svg.querySelectorAll('line').forEach((l) => {
+    if ((l.getAttribute('stroke') || '') !== 'var(--rule-soft)') return;
+    const ly1 = parseFloat(l.getAttribute('y1')), ly2 = parseFloat(l.getAttribute('y2'));
+    if (ly1 === ly2) bandBounds.push(ly1);
+  });
+  bandBounds.push(1e9);
+  bandBounds.sort((a, b) => a - b);
+  function bandOf(y) {
+    for (let i = 0; i < bandBounds.length - 1; i++) {
+      if (y >= bandBounds[i] && y < bandBounds[i + 1]) return i;
+    }
+    return -1;
+  }
+
+  const activationRects = [];
+  svg.querySelectorAll('rect').forEach((r) => {
+    const w = parseFloat(r.getAttribute('width'));
+    const h = parseFloat(r.getAttribute('height'));
+    const rx = r.getAttribute('rx');
+    if (w > 0 && w <= 10 && h > w * 2 && rx !== '6' && rx !== '8') {
+      const x = parseFloat(r.getAttribute('x'));
+      const y = parseFloat(r.getAttribute('y'));
+      activationRects.push({ x, x2: x + w, y, h, band: bandOf(y) });
+    }
+  });
+
+  const activationIssues = [];
+  if (activationRects.length) {
+    svg.querySelectorAll('line').forEach((line) => {
+      if ((line.getAttribute('stroke') || '') !== 'var(--ink)') return;
+      const x1 = parseFloat(line.getAttribute('x1')), y1 = parseFloat(line.getAttribute('y1'));
+      const x2 = parseFloat(line.getAttribute('x2')), y2 = parseFloat(line.getAttribute('y2'));
+      [[x1, y1], [x2, y2]].forEach(([x, y]) => {
+        const b = bandOf(y);
+        const touching = activationRects.filter((r) => r.band === b && (Math.abs(x - r.x) < 2 || Math.abs(x - r.x2) < 2));
+        if (!touching.length) return;
+        let best = Infinity;
+        touching.forEach((r) => {
+          const d = y < r.y ? r.y - y : (y > r.y + r.h ? y - (r.y + r.h) : 0);
+          if (d < best) best = d;
+        });
+        if (best > SLACK) {
+          activationIssues.push({ line: [x1, y1, x2, y2], endpoint: [Math.round(x), Math.round(y)], nearestGapPx: Math.round(best) });
+        }
+      });
+    });
+  }
+
+  document.getElementById('verify-report').textContent = JSON.stringify({ boxIssues, globalIssues, pathIssues, activationIssues }, null, 2);
 }
 window.addEventListener('load', runLayoutVerification);

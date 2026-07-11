@@ -108,6 +108,41 @@ browser.
     synchronously on load (via `getBoundingClientRect()`) as well as on
     intersection change, so there's no flash of the duplicate before JS
     runs.
+- **An activation bar (the thin "handler running" rect on a lifeline) must
+  span the actor's full busy time — it must start no later than the request
+  arrow that wakes it and end no earlier than the response arrow it sends.**
+  Read the numbers directly off the coordinates rather than eyeballing the
+  render: for a bar `<rect x=X y=TOP height=H .../>` on a given lifeline,
+  every arrow whose endpoint touches that lifeline (`x1`/`x2` equal to `X`
+  or `X+width`) that represents work happening *during* that activation must
+  have `y` inside `[TOP, TOP+H]`. It's fine for the bar to start a few px
+  before its request arrow and end a few px after its response arrow
+  (existing diagrams use ~5-20px of padding, often to enclose one line of
+  trailing annotation text) — that reads as normal breathing room. It is
+  **not** fine for the bar to end *before* the response arrow's `y`: that
+  leaves the response arrow, and often a note box describing what happened
+  in between, floating below the bar with no activation behind them, which
+  reads as the handler having already gone idle before it actually replied.
+  This shipped broken in `dig/diagrams/editor-lsp-sequence.html` (fixed
+  2026-07-11): the server's activation bar around `spawn_blocking(run_parse)`
+  ended 48px before the `textDocument/publishDiagnostics` response it sent,
+  and a shorter version of the same bug ended the `shutdown` activation 14px
+  before its `Ok(()) ` response — both invisible from a quick look at the
+  rendered SVG, only obvious once you compare the bar's `y+height` against
+  the response arrow's `y`. When a bar covers a nested call to another actor
+  (e.g. the server's bar around a subprocess round-trip), the nested actor
+  gets its own, shorter bar for just the call/response pair, but the outer
+  bar must keep running until *it* replies, not until the nested call
+  returns. The layout verifier below checks this geometry automatically —
+  but it can only do so because this file's conventions hold: message
+  arrows drawn with `stroke="var(--ink)"` (as opposed to an actor's own
+  accent color, used for symbolic/self-referential lines like a "repeat of
+  the cycle above" pointer or a debounce hairpin) and `PHASE`-divider lines
+  drawn with `stroke="var(--rule-soft)"` as full-width horizontal `<line>`s.
+  Don't improvise different styling for these — the checker's phase-scoping
+  is what lets it avoid matching a message against some unrelated activation
+  bar that happens to reuse the same lifeline x hundreds of pixels away in
+  a different phase.
 - Cite sources in a footer as a **list or table, one source per row** —
   `path/to/file.rs:12-34` plus a short description of what it grounds —
   for every actor or message that came from a specific place in the code.
@@ -140,7 +175,11 @@ hand-computed estimates), for:
 - text wider than the `<rect>` it sits in (any note box or lane header),
 - text extending past the SVG viewBox's margins,
 - an arrow or curve physically crossing through any text's bounding box
-  (its own caption or another one).
+  (its own caption or another one),
+- for sequence diagrams: a request/response arrow (`stroke="var(--ink)"`)
+  landing more than ~26px outside every activation bar it should belong to,
+  within the same `PHASE` band — the "response floats below the bar that
+  already ended" defect described above.
 
 It exits 0 and prints `OK` when clean, or exits 1 with a JSON list of
 every offending element (box/curve coordinates, overflow amount, the
