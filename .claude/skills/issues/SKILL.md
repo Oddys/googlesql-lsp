@@ -54,8 +54,14 @@ outranks any number of style nits.
 1. **Bugs & uncovered edge cases** — the highest-value findings. Look for:
    - Inputs the code doesn't handle: empty/`None`/zero-length, boundary values,
      Unicode vs. byte offsets, very large inputs, negative numbers, overflow.
-   - Error paths: `unwrap()`/`expect()`/`panic!` on fallible operations,
-     swallowed errors, `?` that discards context, results ignored.
+   - Error paths, e.g.:
+     - Rust: `unwrap()`/`expect()`/`panic!` on fallible operations, `?` that
+       discards context, a `Result` ignored via `let _ =`.
+     - Python: bare `except:` or `except Exception: pass` that swallows errors,
+       an unchecked `None` return dereferenced, an unhandled `KeyError`/`IndexError`.
+     - Zig: `catch unreachable`/`orelse unreachable` on fallible operations,
+       `.?` unwrapping an optional that can be null, an error union ignored via
+       `_ = foo()` instead of `try`.
    - Concurrency: shared mutable state, races, lock ordering, `await` points
      that hold a lock, cancellation, tasks that can deadlock or leak.
    - Logic errors: off-by-one, inverted conditions, wrong operator, fallthrough
@@ -80,10 +86,16 @@ outranks any number of style nits.
    over generic advice.
 
 4. **Style & idiom** — more idiomatic ways to express the same thing in this
-   language, and consistency with the surrounding code. Iterator chains vs.
-   manual loops, `if let`/`match` ergonomics, error-handling idioms, naming,
-   dead code, needless clones. Keep these last and keep them brief; do not let
-   style noise bury a real bug.
+   language, and consistency with the surrounding code — e.g.:
+   - Rust: iterator chains vs. manual loops, `if let`/`match` ergonomics,
+     needless `clone()`, `?` vs. manual matching on `Result`.
+   - Python: comprehensions vs. manual accumulation loops, `with` context
+     managers vs. manual open/close, EAFP over LBYL, f-strings over `%`/`.format`.
+   - Zig: `defer`/`errdefer` for cleanup, `comptime` where it fits, slices over
+     manual index bookkeeping, following the explicit-allocator convention.
+
+   Common to all: naming, dead code, error-handling idioms. Keep these last and
+   keep them brief; do not let style noise bury a real bug.
 
 ## Documentation alignment
 
