@@ -12,7 +12,14 @@ change code on its own. Every finding must trace to a concrete line and come
 with a concrete failure or improvement, not a vague worry.
 
 Do not confuse this with `code-review` (which reviews the working diff) — this
-skill audits code that already exists, whether or not it was just changed.
+skill audits code that already exists, whether or not it was just changed. For
+checking whether dependency/language versions are current, use the `update`
+skill instead.
+
+This skill's saved output lives under `dig/` — the shared home for the artifacts
+of the `draw`, `explain`, `issues`, and `update` skills (`dig/DIAGRAMS.md` +
+`dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
+respectively).
 
 ## Before analysing
 
@@ -20,20 +27,20 @@ skill audits code that already exists, whether or not it was just changed.
    the scope. If they named a directory/module, that's the scope. If they said
    "the project" or gave nothing, treat the whole `src/` tree as scope but say
    so, and offer to narrow it. If ambiguous, ask before spending effort.
-2. Before starting a new analysis, read `ISSUES.md` (if it exists) to see what
-   has already been reported. If a finding is already recorded there, don't
+2. Before starting a new analysis, read `dig/ISSUES.md` (if it exists) to see
+   what has already been reported. If a finding is already recorded there, don't
    re-report it as new — note it's known, and focus on what's changed or
    uncovered since.
 3. Read the target in full — every file in scope, top to bottom. Do not audit
    from a partial read, a grep sample, or memory of similar code. For a
    directory/project, read the entry points and the core modules fully, and at
    least skim every file so nothing in scope is unexamined.
-3. Trace the non-obvious dependencies. When code in scope calls a
+4. Trace the non-obvious dependencies. When code in scope calls a
    project-specific function, relies on an invariant established elsewhere, or
    trusts an input from another layer, read enough of that other code to judge
    whether the assumption actually holds. A bug is often the gap between what
    one function guarantees and what its caller assumes.
-4. Note the language and its edition/version, plus the declared dependency
+5. Note the language and its edition/version, plus the declared dependency
    versions — `Cargo.toml` / `Cargo.lock` for Rust, `pyproject.toml` / `uv.lock`
    for Python, `build.zig` / `build.zig.zon` for Zig, or the equivalent
    manifest+lockfile for whatever language the target is in. You'll use these to
@@ -82,7 +89,7 @@ outranks any number of style nits.
 
 While reading, check the code against every claim made about it: inline
 comments, doc comments/docstrings, `README.md`, and any project docs
-(`EXPLAINED.md`, `DIAGRAMS.md`, design notes). When code and documentation
+(`dig/EXPLAINED.md`, `dig/DIAGRAMS.md`, design notes). When code and documentation
 disagree — a comment describing behaviour the code no longer has, a README flag
 that doesn't exist, a docstring with the wrong return contract — **report the
 mismatch and ask the user which side is wrong**: should the code change to match
@@ -116,10 +123,10 @@ release notes here.
 ## Saving findings
 
 - Once you've presented the findings, ask the user whether they want you to save
-  them to `ISSUES.md`, or whether they have follow-up questions. Keep asking
+  them to `dig/ISSUES.md`, or whether they have follow-up questions. Keep asking
   after each answer until the user tells you to either save or discard.
 - When saving, append the findings under a dated, scope-labelled heading rather
-  than overwriting the file, so `ISSUES.md` accumulates a history. Keep each
+  than overwriting the file, so `dig/ISSUES.md` accumulates a history. Keep each
   entry's `file_path:line_number` anchors and severity grouping intact. When a
   previously recorded finding has since been fixed, mark it resolved rather than
   silently dropping it.

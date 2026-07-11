@@ -7,29 +7,34 @@ description: Explains the code in a file, a config file, or a project-related co
 
 Produce a clear, self-contained explanation of a file, a piece of config, or a
 project concept. Write for a competent software engineer who know general
-programming, but nothing project-specific, except for specified in `EXPLAINED.md` 
-(previously explained by invoking this skill).
+programming, but nothing project-specific, except for specified in
+`dig/EXPLAINED.md` (previously explained by invoking this skill).
+
+This skill's saved output lives under `dig/` — the shared home for the
+artifacts of the `draw`, `explain`, `issues`, and `update` skills
+(`dig/DIAGRAMS.md` + `dig/diagrams/*.html`, `dig/EXPLAINED.md`,
+`dig/ISSUES.md`, `dig/UPDATE.md` respectively).
 
 ## Before writing
 
 1. Identify exactly what's being asked about: a specific file, a symbol
    inside a file, a config file, or a conceptual question ("how does X
    work here"). If ambiguous, ask.
-2. Before answering a new question read `EXPLAINED.md` to identify what
+2. Before answering a new question read `dig/EXPLAINED.md` to identify what
    was explained so far. If being asked about something that has been already
    explained - ask the user if: 1) they you to repeat your previous explanation
    or 2) the explanation was not clear enough and they need rephrasing and
    simplification
 3. Read the target file(s) in full — don't explain from a partial read or
    from memory of similar codebases.
-3. If the file references other project-specific types, functions, or
+4. If the file references other project-specific types, functions, or
    config keys that aren't self-evident, briefly look them up (grep/read)
    so the explanation is accurate rather than guessed. You don't need to
    fully trace every dependency — just enough to describe what a piece
    does and why, correctly.
-4. If the file contains any comments that start with `:e` (e.g. `//:e` or `#:e`)
+5. If the file contains any comments that start with `:e` (e.g. `//:e` or `#:e`)
    make sure you address those questions in your explanation.
-5. Define any domain or project-specific term the first time you use it
+6. Define any domain or project-specific term the first time you use it
    (e.g. "LSP" → "Language Server Protocol, the standard editors use to
    talk to language tooling"). Don't assume the reader knows the project's
    internal vocabulary even if it's common within this repo.
@@ -74,13 +79,13 @@ Adapt the shape to what's being explained, but generally cover:
 - Keep it proportional: a 30-line helper doesn't need the same depth as
   a core module. Match explanation length to complexity, not file size.
 - Once done with the explanation, ask the user if they want you to save 
-  this explanation to `EXPLAINED.md` or do they have more questions
+  this explanation to `dig/EXPLAINED.md` or do they have more questions
   Proceed with asking after your every answer until the user tells
   you either to save or do not save your explanation. 
-- Once the user confirmed saving to `EXPLAINED.md` or discarding the explanation,
-  if there were `:e` comments in the file(s) you explained 
+- Once the user confirmed saving to `dig/EXPLAINED.md` or discarding the
+  explanation, if there were `:e` comments in the file(s) you explained 
   ask if the user wants you to delete those comments. Do not touch `:e` in other
   files.
-- Upon finishing check if `DIAGRAMS.md` does not contain obsolete or misleading
-  descriptions. If it does - suggest to the user to call the `draw` skill 
-  for the diagram that needs redrawing
+- Upon finishing check if `dig/DIAGRAMS.md` does not contain obsolete or
+  misleading descriptions. If it does - suggest to the user to call the `draw`
+  skill for the diagram that needs redrawing

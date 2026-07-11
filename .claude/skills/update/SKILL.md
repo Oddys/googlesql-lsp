@@ -15,21 +15,26 @@ For finding bugs, security holes, performance problems, or non-idiomatic code
 in the target itself, use the `issues` skill instead — this skill is only about
 version currency.
 
+This skill's saved output lives under `dig/` — the shared home for the artifacts
+of the `draw`, `explain`, `issues`, and `update` skills (`dig/DIAGRAMS.md` +
+`dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
+respectively).
+
 ## Before checking
 
 1. Resolve the target precisely. If the user named a file/module, scope the
    dependency check to what that code actually uses. If they said "the project"
    or gave nothing, treat the whole project's manifest+lockfile as scope, but
    say so.
-2. Before starting a new check, read `UPDATE.md` (if it exists) to see what was
-   previously reported. Use it to spot what's changed since — a dependency that
-   was flagged and has now been bumped, or one that's fallen further behind.
+2. Before starting a new check, read `dig/UPDATE.md` (if it exists) to see what
+   was previously reported. Use it to spot what's changed since — a dependency
+   that was flagged and has now been bumped, or one that's fallen further behind.
 3. Identify the manifest and lockfile for the language and read them fully —
    `Cargo.toml` / `Cargo.lock` for Rust, `pyproject.toml` / `uv.lock` for
    Python, `package.json` / `package-lock.json` for Node, `build.zig` /
    `build.zig.zon` for Zig, or the equivalent for whatever language the target
    is in. Note the declared language edition/version too.
-3. If the target is narrower than the whole project, note which of the declared
+4. If the target is narrower than the whole project, note which of the declared
    dependencies the in-scope code actually imports/uses, so you can prioritise
    the ones that matter and skip the rest.
 
@@ -80,10 +85,10 @@ Don't fetch release notes for a dozen libraries uninvited, and don't assume
 ## Saving findings
 
 - Once you've presented the currency check, ask the user whether they want you
-  to save it to `UPDATE.md`, or whether they have follow-up questions. Keep
+  to save it to `dig/UPDATE.md`, or whether they have follow-up questions. Keep
   asking after each answer until the user tells you to either save or discard.
 - When saving, append under a dated heading rather than overwriting, so
-  `UPDATE.md` accumulates a history of currency checks. Keep the
+  `dig/UPDATE.md` accumulates a history of currency checks. Keep the
   `current → latest (patch/minor/major)` list and the buy/cost notes for each
   investigated upgrade. When a previously flagged dependency has since been
   upgraded, mark it done rather than silently dropping it.
