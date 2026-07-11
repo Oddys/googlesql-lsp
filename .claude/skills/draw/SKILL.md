@@ -1,0 +1,269 @@
+---
+name: draw
+description: Draws diagrams (sequence diagrams, architecture/component diagrams, flowcharts) illustrating the structure and interactions of components in this project. Use when the user says "draw X", "diagram X", "show me how X talks to Y", or asks to visualize an architecture, flow, or protocol.
+---
+
+# Draw
+
+Produce a diagram of real project structure or behavior — not a generic
+textbook illustration. Output is a single self-contained local HTML file
+with inline SVG. Never uploaded anywhere; the user opens it directly in a
+browser.
+
+## Before drawing
+
+1. Identify exactly what's being diagrammed and the right diagram shape:
+   - **Sequence diagram** — messages/calls between actors over time (e.g.
+     "how does the editor talk to the server", a request lifecycle, a
+     protocol handshake). Use lifelines + arrows.
+   - **Architecture / component diagram** — static structure: modules,
+     processes, data stores, and the relationships between them. Use
+     boxes + connecting lines, grouped by layer or crate/package.
+   - **Flowchart** — control flow or decision logic inside one component
+     (branches, loops, early returns).
+   If the request is ambiguous about scope or shape, ask rather than guess.
+2. Read the relevant source file(s) in full before drawing. Every actor,
+   message name, function name, and condition in the diagram must trace
+   back to real code — grep/read as needed rather than diagramming from
+   memory or from what a typical system "probably" does. If a detail is
+   genuinely inferred rather than read (e.g. timing), say so in a note on
+   the diagram itself rather than presenting it as fact.
+3. Check `diagrams/DIAGRAMS.md` (create it if this is the first diagram)
+   to see if this exact topic was already drawn. If so, ask whether to
+   regenerate it in place or the user wants something different this time.
+
+## Output format — hard constraints
+
+- **One self-contained `.html` file.** Inline `<style>` and `<script>`
+  only. No CDN links, no external fonts, no JS libraries (no Mermaid,
+  no D3) — hand-drawn inline SVG. It must open correctly via `file://`
+  with no build step and no network access.
+- **Never publish this file with the Artifact tool.** These diagrams stay
+  local to the repo — do not upload them to Claude's cloud. Just `Write`
+  the file and tell the user the path to open in a browser.
+- **Every diagram must include a light/dark theme toggle** — a button
+  that flips a `data-theme` attribute, persisted in `localStorage`, with
+  `prefers-color-scheme` as the default before any preference is stored.
+  Use the exact template below rather than inventing a new mechanism.
+- Save to `diagrams/<kebab-case-topic>.html` at the repo root (create the
+  directory if missing), and add one line to `diagrams/DIAGRAMS.md`
+  pointing at it with a one-sentence description.
+- SVG must use `viewBox` (not fixed pixel width) and sit inside a
+  horizontally-scrollable wrapper, so wide diagrams don't break layout.
+- **Tall sequence diagrams need a frozen lane header, not a legend.** The
+  actor/lane boxes are drawn once at the top of the SVG, so on a tall
+  diagram (more than ~1 screen, e.g. multiple `PHASE` sections, viewBox
+  height beyond ~900) they scroll out of view and the reader loses track
+  of which lifeline is which. A flat list of colored dots next to the
+  actor names is *not* enough — the reader still has to match a dot color
+  to a lifeline color by eye, which is exactly the ambiguity we're trying
+  to remove. Instead, literally duplicate the header `<g>` blocks (the
+  same rects/text used at the top of the main SVG, cropped to just that
+  row) into a second, small `position: sticky` SVG pinned above the
+  diagram, and sync its horizontal scroll to the main diagram via JS —
+  the frozen-header-row pattern spreadsheets use. See `.lane-sticky` /
+  `.lane-sticky-scroll` in the template below, copied verbatim from
+  `explained/internal-components-sequence.html` and
+  `explained/editor-lsp-sequence.html` in this repo. Skip it for short
+  diagrams and for architecture/flowchart diagrams, where there's no
+  header-scrolls-away problem.
+- Cite sources in a footer: `path/to/file.rs:12-34` for every actor or
+  message that came from a specific place in the code.
+
+## Template
+
+Start every diagram from this skeleton (it's the exact pattern already
+used in `explained/*.html` in this repo — stay consistent with it). Fill
+in `<TITLE>`, the `--actorN` color variables, the legend, and the SVG body.
+Keep the theme CSS block and the toggle script byte-for-byte; only the
+content inside `.wrap` and the accent color values should change. The
+`.lane-sticky` block (CSS, markup, and its scroll-sync script at the end)
+is only for tall sequence diagrams — include or omit the whole trio
+together, per the hard constraint above.
+
+```html
+<title><TITLE></title>
+<style>
+  :root {
+    --paper: #f5f4ef;
+    --panel: #ffffff;
+    --ink: #1c2027;
+    --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16);
+    --rule-soft: rgba(28, 32, 39, 0.09);
+    --note-bg: #fbf9f3;
+    --note-border: #d8cfb8;
+    /* one accent per actor/component — add as many as you need */
+    --actor1: #4b5563;
+    --actor2: #196b73;
+    --actor2-soft: #e4f0ef;
+    --actor3: #a8691f;
+    --actor3-soft: #f4e8d7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #12151a; --panel: #171b21; --ink: #e6e8ec; --ink-dim: #929aa8;
+      --rule: rgba(230, 232, 236, 0.18); --rule-soft: rgba(230, 232, 236, 0.09);
+      --note-bg: #1c1a14; --note-border: #453c28;
+      --actor1: #9aa4b2; --actor2: #57bcc4; --actor2-soft: #172b2c;
+      --actor3: #dba25b; --actor3-soft: #2c2214;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #12151a; --panel: #171b21; --ink: #e6e8ec; --ink-dim: #929aa8;
+    --rule: rgba(230, 232, 236, 0.18); --rule-soft: rgba(230, 232, 236, 0.09);
+    --note-bg: #1c1a14; --note-border: #453c28;
+    --actor1: #9aa4b2; --actor2: #57bcc4; --actor2-soft: #172b2c;
+    --actor3: #dba25b; --actor3-soft: #2c2214;
+  }
+  :root[data-theme="light"] {
+    --paper: #f5f4ef; --panel: #ffffff; --ink: #1c2027; --ink-dim: #5b6270;
+    --rule: rgba(28, 32, 39, 0.16); --rule-soft: rgba(28, 32, 39, 0.09);
+    --note-bg: #fbf9f3; --note-border: #d8cfb8;
+    --actor1: #4b5563; --actor2: #196b73; --actor2-soft: #e4f0ef;
+    --actor3: #a8691f; --actor3-soft: #f4e8d7;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 40px 20px 64px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .theme-toggle {
+    flex: none; width: 38px; height: 38px; padding: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 9px; border: 1px solid var(--rule); background: var(--panel);
+    color: var(--ink-dim); cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--actor2); border-color: var(--actor2); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--actor2); outline-offset: 2px; }
+  .theme-toggle svg { width: 18px; height: 18px; }
+  .theme-toggle .icon-moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-sun { display: none; }
+  :root[data-theme="dark"] .theme-toggle .icon-moon { display: inline-flex; }
+  .eyebrow {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--actor2); margin: 0 0 10px;
+  }
+  h1 { font-size: 26px; margin: 0 0 8px; text-wrap: balance; letter-spacing: -0.01em; }
+  header p { margin: 0; max-width: 62ch; color: var(--ink-dim); font-size: 14.5px; line-height: 1.55; }
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; font-size: 12.5px; color: var(--ink-dim); }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend svg { flex: none; }
+  .diagram-shell { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 8px; }
+  .diagram-scroll { overflow-x: auto; }
+  /* only add this block + the .lane-sticky markup below for tall sequence diagrams — see "hard constraints" */
+  .lane-sticky {
+    position: sticky; top: 0; z-index: 5;
+    background: var(--panel); border-bottom: 1px solid var(--rule);
+    border-radius: 10px 10px 0 0;
+    margin: -8px -8px 8px;
+    padding: 6px 8px 2px;
+  }
+  /* overflow: hidden (not auto) — this scrolls only via the JS sync below, no independent scrollbar */
+  .lane-sticky-scroll { overflow: hidden; }
+  .lane-sticky-scroll svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  svg.diagram { display: block; min-width: 760px; width: 100%; height: auto; }
+  text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; }
+  .mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; }
+  footer { margin-top: 22px; color: var(--ink-dim); font-size: 12px; line-height: 1.7; }
+  footer .mono { color: var(--ink-dim); }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="header-row">
+      <div class="header-text">
+        <p class="eyebrow"><!-- e.g. src/backend.rs — LanguageServer trait --></p>
+        <h1><TITLE></h1>
+        <p><!-- one or two sentences of framing --></p>
+      </div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7"/></svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5Z"/></svg>
+      </button>
+    </div>
+    <div class="legend"><!-- one <span> per arrow/box convention used below --></div>
+  </header>
+
+  <div class="diagram-shell">
+    <!--
+      Tall sequence diagrams only. This is a second, cropped SVG containing exact
+      copies of the <g> header blocks from the main diagram below (same x/y/width,
+      same colors) — not a redrawn summary. viewBox width and the .lane-sticky-scroll
+      svg min-width above MUST match the main diagram's viewBox width and min-width,
+      or the JS scroll sync will misalign the two.
+    -->
+    <div class="lane-sticky">
+      <div class="lane-sticky-scroll">
+        <svg viewBox="0 0 1080 76" xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true">
+          <!-- one <g> per actor, copy-pasted verbatim from the header <g> blocks in the main SVG below -->
+        </svg>
+      </div>
+    </div>
+    <div class="diagram-scroll">
+      <svg class="diagram" viewBox="0 0 1080 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<describe the diagram for screen readers>">
+        <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like explained/editor-lsp-sequence.html -->
+        <!-- architecture diagrams: grouped boxes with rx corners, thin connecting lines, arrowheads for direction -->
+      </svg>
+    </div>
+  </div>
+
+  <footer><!-- Sources: path:line refs for every actor/message drawn above --></footer>
+</div>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    var KEY = 'googlesql-lsp-diagram-theme';
+    function systemPrefersDark() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function apply(theme) {
+      root.setAttribute('data-theme', theme);
+      btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+    }
+    var stored = null;
+    try { stored = localStorage.getItem(KEY); } catch (e) {}
+    apply(stored === 'dark' || stored === 'light' ? stored : (systemPrefersDark() ? 'dark' : 'light'));
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      apply(next);
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  })();
+
+  /* tall sequence diagrams only — keeps the frozen header's horizontal scroll in sync with the main diagram */
+  (function () {
+    var main = document.querySelector('.diagram-scroll');
+    var header = document.querySelector('.lane-sticky-scroll');
+    if (!main || !header) return;
+    main.addEventListener('scroll', function () {
+      header.scrollLeft = main.scrollLeft;
+    });
+  })();
+</script>
+```
+
+## Style
+
+- Ground every label in the actual code: real method names, real file
+  names, real condition text — not paraphrases.
+- Keep a legend for every visual convention introduced (solid vs. dashed
+  arrows, box colors, note boxes) — a diagram nobody can decode is worse
+  than prose.
+- Prefer several small, focused diagrams over one diagram trying to show
+  the entire system — split by protocol phase, by subsystem, or by call
+  path if a single sequence would need more than ~8-10 messages.
+- After writing the file, tell the user the exact path and that they can
+  open it directly in a browser (`file://` works, no server needed).
+- Once done, ask if the user wants the diagram kept as-is, adjusted, or
+  discarded — don't add it to `diagrams/DIAGRAMS.md` until they confirm
+  they want to keep it.
