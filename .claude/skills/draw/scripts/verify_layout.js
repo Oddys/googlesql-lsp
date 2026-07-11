@@ -169,6 +169,47 @@ function runLayoutVerification() {
     });
   }
 
-  document.getElementById('verify-report').textContent = JSON.stringify({ boxIssues, globalIssues, pathIssues, activationIssues }, null, 2);
+  //   5. crossingIssues — a request/response <line> (stroke="var(--ink)")
+  //      whose x-span passes clean through an activation bar's full width
+  //      instead of stopping at the bar's *near* edge (the edge facing the
+  //      other endpoint). This is the "arrow drawn crossing the bar instead
+  //      of touching it" defect: a response line correctly touches a bar
+  //      when it starts at the edge closest to where it's headed (e.g. a
+  //      server bar sitting to the right of a client lifeline should be
+  //      touched on its *left* edge by both the incoming request and the
+  //      outgoing response) — anchoring the response at the bar's *far*
+  //      edge instead means the line's rendered path necessarily overlaps
+  //      the entire bar width to get there. Real bug first found in
+  //      dig/diagrams/editor-lsp-sequence.html (fixed 2026-07-11): five
+  //      response arrows anchored at the server bar's right edge (634)
+  //      while heading left to the client (300), instead of the bar's left
+  //      edge (626) that actually faces the client; same defect in
+  //      dig/diagrams/internal-components-sequence.html for a bar facing a
+  //      lifeline to its right. Detected as an *open-interval* overlap
+  //      (excluding exact edge touches) between the line's [xa, xb] span
+  //      and the bar's [x, x+width] span, scoped to the same PHASE band and
+  //      same y-range as activationIssues above, so a plain "near edge"
+  //      touch (which shares only the boundary point) is never flagged.
+  const crossingIssues = [];
+  if (activationRects.length) {
+    svg.querySelectorAll('line').forEach((line) => {
+      if ((line.getAttribute('stroke') || '') !== 'var(--ink)') return;
+      const x1 = parseFloat(line.getAttribute('x1')), y1 = parseFloat(line.getAttribute('y1'));
+      const x2 = parseFloat(line.getAttribute('x2')), y2 = parseFloat(line.getAttribute('y2'));
+      if (y1 !== y2) return; // only horizontal message arrows have a meaningful x-span here
+      const xa = Math.min(x1, x2), xb = Math.max(x1, x2);
+      const b = bandOf(y1);
+      const CROSS_EPS = 1;
+      activationRects.forEach((r) => {
+        if (r.band !== b) return;
+        if (!(y1 >= r.y - 2 && y1 <= r.y + r.h + 2)) return;
+        if (xa < r.x2 - CROSS_EPS && xb > r.x + CROSS_EPS) {
+          crossingIssues.push({ line: [x1, y1, x2, y2], barXY: [r.x, r.y, r.x2 - r.x, r.h] });
+        }
+      });
+    });
+  }
+
+  document.getElementById('verify-report').textContent = JSON.stringify({ boxIssues, globalIssues, pathIssues, activationIssues, crossingIssues }, null, 2);
 }
 window.addEventListener('load', runLayoutVerification);
