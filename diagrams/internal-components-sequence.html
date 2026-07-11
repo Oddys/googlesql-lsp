@@ -260,7 +260,7 @@
       </div>
     </div>
     <div class="diagram-scroll">
-      <svg class="diagram" viewBox="0 0 1300 1220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of internal calls between Server, LspService, Backend, parser, and diagnostics">
+      <svg class="diagram" viewBox="0 0 1300 1280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of internal calls between Server, LspService, Backend, parser, and diagnostics">
 
         <!-- lane x: Server 230, LspService 470, Backend 710, parser 950, diagnostics 1170 -->
 
@@ -293,11 +293,11 @@
         </g>
 
         <!-- lifelines -->
-        <line x1="230" y1="74" x2="230" y2="1170" stroke="var(--transport)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
-        <line x1="470" y1="74" x2="470" y2="1170" stroke="var(--dispatch)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
-        <line x1="710" y1="74" x2="710" y2="1170" stroke="var(--core)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
-        <line x1="950" y1="74" x2="950" y2="1170" stroke="var(--proc)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
-        <line x1="1170" y1="74" x2="1170" y2="1170" stroke="var(--data)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
+        <line x1="230" y1="74" x2="230" y2="1230" stroke="var(--transport)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="470" y1="74" x2="470" y2="1230" stroke="var(--dispatch)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.55"/>
+        <line x1="710" y1="74" x2="710" y2="1230" stroke="var(--core)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.6"/>
+        <line x1="950" y1="74" x2="950" y2="1230" stroke="var(--proc)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
+        <line x1="1170" y1="74" x2="1170" y2="1230" stroke="var(--data)" stroke-width="1.2" stroke-dasharray="1,4" opacity="0.5"/>
 
         <!-- ================= PHASE: Construction ================= -->
         <text x="20" y="100" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">CONSTRUCTION — main.rs</text>
@@ -307,12 +307,12 @@
         <line x1="466" y1="138" x2="706" y2="138" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="706,138 697,134 697,142" fill="var(--ink)"/>
         <text x="474" y="130" font-size="12.5" class="mono" fill="var(--ink)">Backend::new(client)</text>
-        <text x="474" y="153" font-size="10.5" fill="var(--ink-dim)">the init closure passed to LspService::new — main.rs:22</text>
+        <text x="474" y="153" font-size="10.5" fill="var(--ink-dim)">the init closure passed to LspService::new — main.rs:22, backend.rs:31</text>
 
         <line x1="706" y1="180" x2="946" y2="180" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="946,180 937,176 937,184" fill="var(--ink)"/>
         <text x="714" y="172" font-size="12.5" class="mono" fill="var(--ink)">parser::find_binary()</text>
-        <text x="714" y="195" font-size="10.5" fill="var(--ink-dim)">$GOOGLESQL_EXECUTE_QUERY → ~/.local/share/… → $PATH</text>
+        <text x="714" y="195" font-size="10.5" fill="var(--ink-dim)">$GOOGLESQL_EXECUTE_QUERY → ~/.local/share/… → $PATH — parser.rs:15-36</text>
 
         <line x1="946" y1="215" x2="706" y2="215" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
         <polygon points="706,215 715,211 715,219" fill="var(--ink)"/>
@@ -324,11 +324,11 @@
 
         <g>
           <rect x="150" y="284" width="640" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="162" y="305" font-size="11" fill="var(--ink-dim)">LspService registers LSP method names → Backend methods, returns (LspService, ClientSocket) — service.rs</text>
+          <text x="162" y="305" font-size="11" fill="var(--ink-dim)">LspService::build registers LSP method names → Backend methods via its Router, returns (LspService, ClientSocket) — service.rs:74-95</text>
         </g>
         <g>
           <rect x="150" y="326" width="640" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="162" y="347" font-size="11" fill="var(--ink-dim)">main.rs then builds Server::new(stdin, stdout, socket) and calls .serve(service)</text>
+          <text x="162" y="347" font-size="11" fill="var(--ink-dim)">main.rs then builds Server::new(stdin, stdout, socket) and calls .serve(service) — main.rs:22-23</text>
         </g>
 
         <!-- ================= PHASE: Request ================= -->
@@ -342,16 +342,16 @@
         <line x1="234" y1="436" x2="466" y2="436" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="466,436 457,432 457,440" fill="var(--ink)"/>
         <text x="240" y="428" font-size="12.5" class="mono" fill="var(--ink)">service.call(Request{"initialize"})</text>
-        <text x="240" y="450" font-size="10.5" fill="var(--ink-dim)">decoded from a Content-Length framed stdin message</text>
+        <text x="240" y="450" font-size="10.5" fill="var(--ink-dim)">decoded from a Content-Length framed stdin message — transport.rs:128-143</text>
 
         <line x1="474" y1="476" x2="706" y2="476" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="706,476 697,472 697,480" fill="var(--ink)"/>
         <text x="480" y="468" font-size="12.5" class="mono" fill="var(--ink)">Backend::initialize(params)</text>
-        <text x="480" y="491" font-size="10.5" fill="var(--ink-dim)">Router matches the method name to the generated dispatch table</text>
+        <text x="480" y="491" font-size="10.5" fill="var(--ink-dim)">Router matches the method name to the generated dispatch table — service.rs:116-121</text>
 
         <line x1="706" y1="518" x2="474" y2="518" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
         <polygon points="474,518 483,514 483,522" fill="var(--ink)"/>
-        <text x="480" y="510" font-size="11.5" fill="var(--ink-dim)">Ok(InitializeResult)</text>
+        <text x="480" y="510" font-size="11.5" fill="var(--ink-dim)">Ok(InitializeResult) — backend.rs:94-107</text>
 
         <line x1="466" y1="556" x2="234" y2="556" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
         <polygon points="234,556 243,552 243,560" fill="var(--ink)"/>
@@ -359,7 +359,7 @@
 
         <g>
           <rect x="150" y="586" width="450" height="30" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="162" y="605" font-size="11" fill="var(--ink-dim)">Server's print_output task encodes + writes it to stdout</text>
+          <text x="162" y="605" font-size="11" fill="var(--ink-dim)">Server's print_output stream encodes + writes it to stdout — transport.rs:123-126</text>
         </g>
 
         <!-- ================= PHASE: Notification ================= -->
@@ -373,55 +373,63 @@
         <line x1="474" y1="730" x2="706" y2="730" stroke="var(--ink)" stroke-width="1.5"/>
         <polygon points="706,730 697,726 697,734" fill="var(--ink)"/>
         <text x="480" y="722" font-size="12.5" class="mono" fill="var(--ink)">Backend::did_change(params)</text>
-        <text x="480" y="745" font-size="10.5" fill="var(--ink-dim)">returns () — a notification, so LspService yields no Response</text>
+        <text x="480" y="745" font-size="10.5" fill="var(--ink-dim)">returns () — a notification, so LspService yields no Response — backend.rs:137-144</text>
 
         <path d="M 714 772 L 770 772 L 770 800 L 714 800" fill="none" stroke="var(--core)" stroke-width="1.3" opacity="0.75"/>
         <polygon points="714,800 723,796 723,804" fill="var(--core)"/>
-        <text x="780" y="778" font-size="11" fill="var(--core)">documents.insert(uri, text)</text>
-        <text x="780" y="796" font-size="11" fill="var(--core)">schedule_parse(uri) spawns a background task — backend.rs:41</text>
+        <text x="780" y="778" font-size="11" fill="var(--core)">documents.insert(uri, text) — FULL sync, last change carries the whole doc</text>
+        <text x="780" y="796" font-size="11" fill="var(--core)">schedule_parse(uri) spawns a background task — backend.rs:41-69</text>
 
         <!-- ================= PHASE: Background parse ================= -->
-        <text x="20" y="856" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">BACKGROUND TASK — after a 250ms debounce (backend.rs:53)</text>
+        <text x="20" y="856" font-size="11" letter-spacing="0.08em" fill="var(--ink-dim)">BACKGROUND TASK — after a 250ms debounce (backend.rs:18,54)</text>
         <line x1="20" y1="868" x2="1280" y2="868" stroke="var(--rule-soft)" stroke-width="1"/>
 
-        <rect x="706" y="888" width="8" height="220" rx="2" fill="var(--core)" opacity="0.4"/>
-        <rect x="946" y="908" width="8" height="60" rx="2" fill="var(--proc)" opacity="0.6"/>
+        <g>
+          <rect x="150" y="882" width="680" height="46" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="899" font-size="11" fill="var(--ink-dim)">A per-document ticket counter guards this: if a newer edit bumped it during the 250ms sleep, this task</text>
+          <text x="162" y="915" font-size="11" fill="var(--ink-dim)">returns early (backend.rs:57-59) — only the last edit in a burst reaches compute_diagnostics.</text>
+        </g>
 
-        <line x1="714" y1="914" x2="946" y2="914" stroke="var(--ink)" stroke-width="1.5"/>
-        <polygon points="946,914 937,910 937,918" fill="var(--ink)"/>
-        <text x="720" y="906" font-size="12.5" class="mono" fill="var(--ink)">run_parse(bin, &amp;sql) — spawn_blocking</text>
-        <text x="720" y="929" font-size="10.5" fill="var(--ink-dim)">execute_query --mode=parse "&lt;sql&gt;" — parser.rs:56</text>
+        <rect x="706" y="944" width="8" height="270" rx="2" fill="var(--core)" opacity="0.4"/>
+        <text x="720" y="960" font-size="12.5" class="mono" fill="var(--ink)">compute_diagnostics(&amp;binary, text) — backend.rs:73-90</text>
+        <text x="720" y="978" font-size="10.5" fill="var(--ink-dim)">early-outs to Vec::new() if text.trim().is_empty() or binary is None — never reaches parser</text>
 
-        <line x1="946" y1="962" x2="714" y2="962" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <polygon points="714,962 723,958 723,966" fill="var(--ink)"/>
-        <text x="720" y="954" font-size="10.5" fill="var(--ink-dim)">io::Result&lt;String&gt; — combined stdout+stderr; exits 0 even on a syntax error</text>
+        <rect x="946" y="1000" width="8" height="60" rx="2" fill="var(--proc)" opacity="0.6"/>
+        <line x1="714" y1="1006" x2="946" y2="1006" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="946,1006 937,1002 937,1010" fill="var(--ink)"/>
+        <text x="720" y="998" font-size="12.5" class="mono" fill="var(--ink)">parser::run_parse(&amp;bin, &amp;text) — spawn_blocking</text>
+        <text x="720" y="1021" font-size="10.5" fill="var(--ink-dim)">execute_query --mode=parse "&lt;sql&gt;" — parser.rs:55-64</text>
 
-        <rect x="1166" y="994" width="8" height="60" rx="2" fill="var(--data)" opacity="0.6"/>
-        <line x1="714" y1="1000" x2="1166" y2="1000" stroke="var(--ink)" stroke-width="1.5"/>
-        <polygon points="1166,1000 1157,996 1157,1004" fill="var(--ink)"/>
-        <text x="720" y="992" font-size="12.5" class="mono" fill="var(--ink)">parse_output(&amp;output, &amp;source)</text>
+        <line x1="946" y1="1054" x2="714" y2="1054" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,1054 723,1050 723,1058" fill="var(--ink)"/>
+        <text x="720" y="1046" font-size="10.5" fill="var(--ink-dim)">io::Result&lt;String&gt; — combined stdout+stderr; exits 0 even on a syntax error</text>
 
-        <line x1="1166" y1="1048" x2="714" y2="1048" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
-        <polygon points="714,1048 723,1044 723,1052" fill="var(--ink)"/>
-        <text x="720" y="1040" font-size="10.5" fill="var(--ink-dim)">Vec&lt;Diagnostic&gt; — one per "ERROR:" line, range extended to end-of-line</text>
+        <rect x="1166" y="1086" width="8" height="60" rx="2" fill="var(--data)" opacity="0.6"/>
+        <line x1="714" y1="1092" x2="1166" y2="1092" stroke="var(--ink)" stroke-width="1.5"/>
+        <polygon points="1166,1092 1157,1088 1157,1096" fill="var(--ink)"/>
+        <text x="720" y="1084" font-size="12.5" class="mono" fill="var(--ink)">diagnostics::parse_output(&amp;output, &amp;source)</text>
+
+        <line x1="1166" y1="1140" x2="714" y2="1140" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="5,3"/>
+        <polygon points="714,1140 723,1136 723,1144" fill="var(--ink)"/>
+        <text x="720" y="1132" font-size="10.5" fill="var(--ink-dim)">Vec&lt;Diagnostic&gt; — one per "ERROR:" line, range extended to end-of-line — diagnostics.rs:25-52</text>
 
         <!-- bypass loopback arrow: Backend -> Server, curving over LspService -->
-        <path d="M 706 1104 C 600 1064 340 1064 234 1104" fill="none" stroke="var(--core)" stroke-width="1.6" stroke-dasharray="5,3"/>
-        <polygon points="234,1104 244,1098 246,1110" fill="var(--core)"/>
-        <text x="500" y="1058" text-anchor="middle" font-size="12.5" class="mono" fill="var(--core)">client.publish_diagnostics(uri, diagnostics, None)</text>
-        <text x="500" y="1122" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via the ClientSocket loopback — never touches LspService's Router</text>
+        <path d="M 706 1196 C 600 1156 340 1156 234 1196" fill="none" stroke="var(--core)" stroke-width="1.6" stroke-dasharray="5,3"/>
+        <polygon points="234,1196 244,1190 246,1202" fill="var(--core)"/>
+        <text x="500" y="1150" text-anchor="middle" font-size="12.5" class="mono" fill="var(--core)">client.publish_diagnostics(uri, diagnostics, None)</text>
+        <text x="500" y="1214" text-anchor="middle" font-size="10.5" fill="var(--ink-dim)">via the ClientSocket loopback — never touches LspService's Router — backend.rs:67</text>
 
         <g>
-          <rect x="150" y="1138" width="700" height="30" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="162" y="1157" font-size="11" fill="var(--ink-dim)">Server merges it into the same outgoing stdout stream as ordinary responses (transport.rs print_output)</text>
+          <rect x="150" y="1230" width="700" height="30" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
+          <text x="162" y="1249" font-size="11" fill="var(--ink-dim)">Server merges it into the same outgoing stdout stream as ordinary responses — transport.rs:123-126 (print_output)</text>
         </g>
 
         <!-- lifeline terminators -->
-        <circle cx="230" cy="1170" r="3.5" fill="var(--transport)"/>
-        <circle cx="470" cy="1170" r="3.5" fill="var(--dispatch)"/>
-        <circle cx="710" cy="1170" r="3.5" fill="var(--core)"/>
-        <circle cx="950" cy="1170" r="3.5" fill="var(--proc)"/>
-        <circle cx="1170" cy="1170" r="3.5" fill="var(--data)"/>
+        <circle cx="230" cy="1230" r="3.5" fill="var(--transport)"/>
+        <circle cx="470" cy="1230" r="3.5" fill="var(--dispatch)"/>
+        <circle cx="710" cy="1230" r="3.5" fill="var(--core)"/>
+        <circle cx="950" cy="1230" r="3.5" fill="var(--proc)"/>
+        <circle cx="1170" cy="1230" r="3.5" fill="var(--data)"/>
       </svg>
     </div>
   </div>
@@ -430,16 +438,19 @@
     <p class="sources-label">Sources</p>
     <table class="sources">
       <tbody>
-        <tr><td class="mono">main.rs:22, backend.rs:31</td><td>construction</td></tr>
-        <tr><td class="mono">tower-lsp 0.20.0 service.rs (LspService::call, Router)</td><td>initialize dispatch</td></tr>
-        <tr><td class="mono">backend.rs:131&ndash;144</td><td>notification handling</td></tr>
-        <tr><td class="mono">backend.rs:41&ndash;69</td><td>debounce</td></tr>
-        <tr><td class="mono">parser.rs:55&ndash;63</td><td>subprocess</td></tr>
-        <tr><td class="mono">diagnostics.rs:25&ndash;52</td><td>diagnostic conversion</td></tr>
-        <tr><td class="mono">tower-lsp 0.20.0 transport.rs (Server::serve, print_output)</td><td>loopback write path</td></tr>
+        <tr><td class="mono">main.rs:22, backend.rs:31</td><td>construction — LspService::new(Backend::new)</td></tr>
+        <tr><td class="mono">parser.rs:15-36</td><td>find_binary() search order</td></tr>
+        <tr><td class="mono">service.rs:61-95, 103-136</td><td>LspService::build/new wiring Router + method registration; Service::call impl</td></tr>
+        <tr><td class="mono">transport.rs:101-164</td><td>Server::serve — read_input, process_server_tasks, print_output streams joined together</td></tr>
+        <tr><td class="mono">backend.rs:94-107, 131-144</td><td>initialize response; did_open/did_change/did_save notification handling</td></tr>
+        <tr><td class="mono">backend.rs:18, 41-69</td><td>DEBOUNCE constant and schedule_parse's per-document ticket counter</td></tr>
+        <tr><td class="mono">backend.rs:73-90</td><td>compute_diagnostics — early-returns on empty text or missing binary, else spawn_blocking(run_parse) + parse_output</td></tr>
+        <tr><td class="mono">parser.rs:55-64</td><td>run_parse subprocess invocation, combined stdout+stderr, exit code ignored</td></tr>
+        <tr><td class="mono">diagnostics.rs:25-52</td><td>parse_output — ERROR: line scraping into Diagnostic ranges</td></tr>
+        <tr><td class="mono">service/client.rs:350-360</td><td>Client::publish_diagnostics sends the PublishDiagnostics notification over the loopback</td></tr>
       </tbody>
     </table>
-    <p>The Server/LspService internals are read from the vendored tower-lsp 0.20.0 source, not assumed from the LSP spec.</p>
+    <p>The Server/LspService/Client internals are read from the vendored tower-lsp 0.20.0 source (registry copy at <span class="mono">tower-lsp-0.20.0/src/{service,transport}.rs</span> and <span class="mono">service/client.rs</span>), not assumed from the LSP spec.</p>
   </footer>
 </div>
 

@@ -81,3 +81,6 @@ Adapt the shape to what's being explained, but generally cover:
   if there were `:e` comments in the file(s) you explained 
   ask if the user wants you to delete those comments. Do not touch `:e` in other
   files.
+- Upon finishing check if `DIAGRAMS.md` does not contain obsolete or misleading
+  descriptions. If it does - suggest to the user to call the `draw` skill 
+  for the diagram that needs redrawing
