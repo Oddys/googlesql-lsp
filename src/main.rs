@@ -7,14 +7,14 @@
 //! See `parser.rs` for how the backend binary is located/invoked and `diagnostics.rs`
 //! for how its textual error output is turned into structured diagnostics.
 
-mod backend; //:e What is this module declaration?
+mod backend;
 mod diagnostics;
 mod parser;
 
 use backend::Backend;
-use tower_lsp::{LspService, Server}; //:e Why do I need both?
+use tower_lsp::{LspService, Server};
 
-#[tokio::main] //:e this syntax
+#[tokio::main]
 async fn main() {
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
