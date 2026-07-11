@@ -12,15 +12,15 @@ programming, but nothing project-specific, except for specified in `EXPLAINED.md
 
 ## Before writing
 
-1. Before answering a new question read `EXPLAINED.md` to identify what
+1. Identify exactly what's being asked about: a specific file, a symbol
+   inside a file, a config file, or a conceptual question ("how does X
+   work here"). If ambiguous, ask.
+2. Before answering a new question read `EXPLAINED.md` to identify what
    was explained so far. If being asked about something that has been already
    explained - ask the user if: 1) they you to repeat your previous explanation
    or 2) the explanation was not clear enough and they need rephrasing and
    simplification
-2. Identify exactly what's being asked about: a specific file, a symbol
-   inside a file, a config file, or a conceptual question ("how does X
-   work here"). If ambiguous, ask.
-2. Read the target file(s) in full — don't explain from a partial read or
+3. Read the target file(s) in full — don't explain from a partial read or
    from memory of similar codebases.
 3. If the file references other project-specific types, functions, or
    config keys that aren't self-evident, briefly look them up (grep/read)

@@ -1,6 +1,6 @@
 ---
 name: issues
-description: Analyses a file, directory, module, or the whole project to surface potential issues — bugs and uncovered edge cases, security risks, performance concerns, and non-idiomatic style. Also flags code/documentation mismatches and out-of-date language or library versions. Use when the user says "find issues in X", "review X for problems", "what could go wrong in X", "audit X", or asks what could be improved.
+description: Analyses a file, directory, module, or the whole project to surface potential issues — bugs and uncovered edge cases, security risks, performance concerns, and non-idiomatic style. Also flags code/documentation mismatches. Use when the user says "find issues in X", "review X for problems", "what could go wrong in X", "audit X", or asks what could be improved. For checking whether dependency/language versions are current, use the `update` skill instead.
 ---
 
 # Issues
@@ -20,7 +20,11 @@ skill audits code that already exists, whether or not it was just changed.
    the scope. If they named a directory/module, that's the scope. If they said
    "the project" or gave nothing, treat the whole `src/` tree as scope but say
    so, and offer to narrow it. If ambiguous, ask before spending effort.
-2. Read the target in full — every file in scope, top to bottom. Do not audit
+2. Before starting a new analysis, read `ISSUES.md` (if it exists) to see what
+   has already been reported. If a finding is already recorded there, don't
+   re-report it as new — note it's known, and focus on what's changed or
+   uncovered since.
+3. Read the target in full — every file in scope, top to bottom. Do not audit
    from a partial read, a grep sample, or memory of similar code. For a
    directory/project, read the entry points and the core modules fully, and at
    least skim every file so nothing in scope is unexamined.
@@ -30,10 +34,10 @@ skill audits code that already exists, whether or not it was just changed.
    whether the assumption actually holds. A bug is often the gap between what
    one function guarantees and what its caller assumes.
 4. Note the language and its edition/version, plus the declared dependency
-   versions - `Cargo.toml` / `Cargo.lock` for Rust, 
-   `pyproject.toml` / `uv.lock` for Python, `build.zig` / `build.zig.zon` for Zig, 
-   or the equivalent manifest+lockfile for whatever language the target is in). 
-   You'll use these both to judge idiom and for the version check at the end.
+   versions — `Cargo.toml` / `Cargo.lock` for Rust, `pyproject.toml` / `uv.lock`
+   for Python, `build.zig` / `build.zig.zon` for Zig, or the equivalent
+   manifest+lockfile for whatever language the target is in. You'll use these to
+   judge whether the code is idiomatic for the version in use.
 
 ## What to look for — in priority order
 
@@ -88,23 +92,11 @@ Use `AskUserQuestion` when there are a few discrete mismatches to resolve.
 
 ## Version currency
 
-After the analysis, check whether the language edition/version and the
-dependency versions in scope are the latest:
-
-1. From the manifest/lockfile, list what's in use and its version.
-2. If anything is behind, tell the user, and **ask whether they want you to
-   look up the latest versions for possible improvements** — do not go fetch
-   release notes for a dozen crates uninvited. Use `AskUserQuestion` /
-   `ExitPlanMode`-free confirmation.
-3. If they agree, let the user choose *which* libraries and *which* target
-   versions to investigate (present the outdated ones as options rather than
-   assuming "all, latest"). Only then use `WebSearch`/`WebFetch` to find, for
-   the chosen library at the chosen version, concretely relevant changes:
-   security fixes, bug fixes, API improvements, or performance wins that touch
-   how this project uses it. Skip changelog entries irrelevant to the code in
-   scope.
-4. Report what an upgrade would buy (and cost — breaking changes, migration
-   effort) so the user can decide. Do not perform the upgrade unless asked.
+Checking whether dependency or language versions are out of date is out of
+scope for this skill — that's the `update` skill's job. If, while analysing, you
+notice the target depends on something conspicuously old, mention it in one line
+and point the user at `update` for a proper currency check; don't start fetching
+release notes here.
 
 ## Reporting
 
@@ -118,5 +110,16 @@ dependency versions in scope are the latest:
 - If a scope is clean in a category, say so briefly rather than padding.
 - Keep it proportional: a 40-line helper gets a short list; a module gets
   structure. Don't invent findings to fill a section.
-- This skill reports; it does not edit. After presenting, offer to fix specific
-  findings if the user wants — but make that a separate, explicit step.
+- This skill reports; it does not edit code. After presenting, offer to fix
+  specific findings if the user wants — but make that a separate, explicit step.
+
+## Saving findings
+
+- Once you've presented the findings, ask the user whether they want you to save
+  them to `ISSUES.md`, or whether they have follow-up questions. Keep asking
+  after each answer until the user tells you to either save or discard.
+- When saving, append the findings under a dated, scope-labelled heading rather
+  than overwriting the file, so `ISSUES.md` accumulates a history. Keep each
+  entry's `file_path:line_number` anchors and severity grouping intact. When a
+  previously recorded finding has since been fixed, mark it resolved rather than
+  silently dropping it.
