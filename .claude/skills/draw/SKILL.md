@@ -28,7 +28,7 @@ browser.
    memory or from what a typical system "probably" does. If a detail is
    genuinely inferred rather than read (e.g. timing), say so in a note on
    the diagram itself rather than presenting it as fact.
-3. Check `diagrams/DIAGRAMS.md` (create it if this is the first diagram)
+3. Check `DIAGRAMS.md` (create it if this is the first diagram)
    to see if this exact topic was already drawn. If so, ask whether to
    regenerate it in place or the user wants something different this time.
    If regenerating in place, treat it as a full redraw, not a patch —
@@ -63,8 +63,16 @@ browser.
   `prefers-color-scheme` as the default before any preference is stored.
   Use the exact template below rather than inventing a new mechanism.
 - Save to `diagrams/<kebab-case-topic>.html` at the repo root (create the
-  directory if missing), and add one line to `diagrams/DIAGRAMS.md`
-  pointing at it with a one-sentence description.
+  directory if missing), and add an entry to `DIAGRAMS.md` (create it if
+  missing) pointing at it. A one-line link is not enough — write the same
+  kind of code-grounded explanation the `/explain` skill writes to
+  `EXPLAINED.md`: what the diagram covers, plus the non-obvious behavior
+  it makes visible (debounce/race conditions, error-handling quirks,
+  which calls do/don't route through a given layer, etc.), each claim
+  tied to a `file:line`. A reader who never opens the HTML should still
+  come away knowing the interesting things the code does. Keep it to a
+  few short paragraphs or bullets, not a full walkthrough — this is a
+  pointer with the highlights, not a duplicate of `/explain`'s output.
 - SVG must use `viewBox` (not fixed pixel width) and sit inside a
   horizontally-scrollable wrapper, so wide diagrams don't break layout.
 - **Tall sequence diagrams need a frozen lane header, not a legend.** The
@@ -80,8 +88,8 @@ browser.
   diagram, and sync its horizontal scroll to the main diagram via JS —
   the frozen-header-row pattern spreadsheets use. See `.lane-sticky` /
   `.lane-sticky-scroll` in the template below, copied verbatim from
-  `explained/internal-components-sequence.html` and
-  `explained/editor-lsp-sequence.html` in this repo. Skip it for short
+  `diagrams/internal-components-sequence.html` and
+  `diagrams/editor-lsp-sequence.html` in this repo. Skip it for short
   diagrams and for architecture/flowchart diagrams, where there's no
   header-scrolls-away problem.
   - **Don't let the sticky copy render at the same time as the real
@@ -106,7 +114,7 @@ browser.
 ## Template
 
 Start every diagram from this skeleton (it's the exact pattern already
-used in `explained/*.html` in this repo — stay consistent with it). Fill
+used in `diagrams/*.html` in this repo — stay consistent with it). Fill
 in `<TITLE>`, the `--actorN` color variables, the legend, and the SVG body.
 Keep the theme CSS block and the toggle script byte-for-byte; only the
 content inside `.wrap` and the accent color values should change. The
@@ -247,7 +255,7 @@ together, per the hard constraint above.
     </div>
     <div class="diagram-scroll">
       <svg class="diagram" viewBox="0 0 1080 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<describe the diagram for screen readers>">
-        <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like explained/editor-lsp-sequence.html -->
+        <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like diagrams/editor-lsp-sequence.html -->
         <!-- architecture diagrams: grouped boxes with rx corners, thin connecting lines, arrowheads for direction -->
         <!--
           Tall sequence diagrams only: wrap the real header <g> blocks (the same
@@ -335,5 +343,5 @@ together, per the hard constraint above.
 - After writing the file, tell the user the exact path and that they can
   open it directly in a browser (`file://` works, no server needed).
 - Once done, ask if the user wants the diagram kept as-is, adjusted, or
-  discarded — don't add it to `diagrams/DIAGRAMS.md` until they confirm
+  discarded — don't add it to `DIAGRAMS.md` until they confirm
   they want to keep it.
