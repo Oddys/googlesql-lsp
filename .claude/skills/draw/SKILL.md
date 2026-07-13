@@ -28,7 +28,7 @@ browser.
    memory or from what a typical system "probably" does. If a detail is
    genuinely inferred rather than read (e.g. timing), say so in a note on
    the diagram itself rather than presenting it as fact.
-3. Check `dig/DIAGRAMS.md` (create it if this is the first diagram)
+3. Check `explained/DIAGRAMS.md` (create it if this is the first diagram)
    to see if this exact topic was already drawn. If so, ask whether to
    regenerate it in place or the user wants something different this time.
    If regenerating in place, treat it as a full redraw, not a patch —
@@ -62,13 +62,13 @@ browser.
   that flips a `data-theme` attribute, persisted in `localStorage`, with
   `prefers-color-scheme` as the default before any preference is stored.
   Use the exact template below rather than inventing a new mechanism.
-- Save to `dig/diagrams/<kebab-case-topic>.html` under the project root
-  (create the `dig/diagrams/` directory if missing), and add an entry to
-  `dig/DIAGRAMS.md` (create it if missing) pointing at it — every artifact
-  this skill produces lives under `dig/`, the shared home for the outputs
+- Save to `explained/diagrams/<kebab-case-topic>.html` under the project root
+  (create the `explained/diagrams/` directory if missing), and add an entry to
+  `explained/DIAGRAMS.md` (create it if missing) pointing at it — every artifact
+  this skill produces lives under `explained/`, the shared home for the outputs
   of the `draw`, `explain`, `issues`, and `updates` skills. A one-line link
   is not enough — write the same kind of code-grounded explanation the
-  `/explain` skill writes to `dig/EXPLAINED.md`: what the diagram covers,
+  `/explain` skill writes to `explained/EXPLAINED.md`: what the diagram covers,
   plus the non-obvious behavior
   it makes visible (debounce/race conditions, error-handling quirks,
   which calls do/don't route through a given layer, etc.), each claim
@@ -91,8 +91,8 @@ browser.
   diagram, and sync its horizontal scroll to the main diagram via JS —
   the frozen-header-row pattern spreadsheets use. See `.lane-sticky` /
   `.lane-sticky-scroll` in the template below, copied verbatim from
-  `dig/diagrams/internal-components-sequence.html` and
-  `dig/diagrams/editor-lsp-sequence.html` in this repo. Skip it for short
+  `explained/diagrams/internal-components-sequence.html` and
+  `explained/diagrams/editor-lsp-sequence.html` in this repo. Skip it for short
   diagrams and for architecture/flowchart diagrams, where there's no
   header-scrolls-away problem.
   - **Don't let the sticky copy render at the same time as the real
@@ -123,7 +123,7 @@ browser.
   leaves the response arrow, and often a note box describing what happened
   in between, floating below the bar with no activation behind them, which
   reads as the handler having already gone idle before it actually replied.
-  This shipped broken in `dig/diagrams/editor-lsp-sequence.html` (fixed
+  This shipped broken in `explained/diagrams/editor-lsp-sequence.html` (fixed
   2026-07-11): the server's activation bar around `spawn_blocking(run_parse)`
   ended 48px before the `textDocument/publishDiagnostics` response it sent,
   and a shorter version of the same bug ended the `shutdown` activation 14px
@@ -166,7 +166,7 @@ After writing (or editing) the file, and again after any edit that
 touches box dimensions, text content, or path/line coordinates, run:
 
 ```
-.claude/skills/draw/scripts/verify-diagram.sh path/to/dig/diagrams/<name>.html
+.claude/skills/draw/scripts/verify-diagram.sh path/to/explained/diagrams/<name>.html
 ```
 
 This renders the diagram in headless Chrome and checks, against the
@@ -184,11 +184,11 @@ hand-computed estimates), for:
 It exits 0 and prints `OK` when clean, or exits 1 with a JSON list of
 every offending element (box/curve coordinates, overflow amount, the
 crossing point) when not. **Do not present the diagram as finished, and
-do not add it to `dig/DIAGRAMS.md`, while this reports issues.** Fix the
+do not add it to `explained/DIAGRAMS.md`, while this reports issues.** Fix the
 reported elements and re-run — don't just eyeball the next screenshot,
 since a few pixels of overflow or a shallow curve-through-text crossing
 can be easy to miss even when looking right at it (see
-`dig/diagrams/zed-extension-registration-sequence.html`'s git history
+`explained/diagrams/zed-extension-registration-sequence.html`'s git history
 for a worked example of both defect classes and their fixes).
 
 If no Chrome/Chromium is available, the script says so; take an actual
@@ -210,7 +210,7 @@ peak/caption clearance and re-run the verifier to confirm.
 ## Template
 
 Start every diagram from this skeleton (it's the exact pattern already
-used in `dig/diagrams/*.html` in this repo — stay consistent with it). Fill
+used in `explained/diagrams/*.html` in this repo — stay consistent with it). Fill
 in `<TITLE>`, the `--actorN` color variables, the legend, and the SVG body.
 Keep the theme CSS block and the toggle script byte-for-byte; only the
 content inside `.wrap` and the accent color values should change. The
@@ -351,7 +351,7 @@ together, per the hard constraint above.
     </div>
     <div class="diagram-scroll">
       <svg class="diagram" viewBox="0 0 1080 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="<describe the diagram for screen readers>">
-        <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like dig/diagrams/editor-lsp-sequence.html -->
+        <!-- sequence diagrams: lifelines + arrows, phase-labeled sections, like explained/diagrams/editor-lsp-sequence.html -->
         <!-- architecture diagrams: grouped boxes with rx corners, thin connecting lines, arrowheads for direction -->
         <!--
           Tall sequence diagrams only: wrap the real header <g> blocks (the same
@@ -442,5 +442,5 @@ together, per the hard constraint above.
 - After writing the file, tell the user the exact path and that they can
   open it directly in a browser (`file://` works, no server needed).
 - Once done, ask if the user wants the diagram kept as-is, adjusted, or
-  discarded — don't add it to `dig/DIAGRAMS.md` until they confirm
+  discarded — don't add it to `explained/DIAGRAMS.md` until they confirm
   they want to keep it.

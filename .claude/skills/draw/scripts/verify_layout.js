@@ -112,7 +112,7 @@ function runLayoutVerification() {
   //      lane-header boxes) in the same PHASE band, but lands more than
   //      SLACK px outside every such bar's [y, y+height] span. This is the
   //      "response arrow floats below the bar that supposedly sent it"
-  //      defect class — see dig/diagrams/editor-lsp-sequence.html's git
+  //      defect class — see explained/diagrams/editor-lsp-sequence.html's git
   //      history (fixed 2026-07-11) for the worked example. Matches are
   //      scoped to the band between consecutive PHASE-divider lines
   //      (stroke="var(--rule-soft)", full-width horizontal) — without that,
@@ -180,11 +180,11 @@ function runLayoutVerification() {
   //      outgoing response) — anchoring the response at the bar's *far*
   //      edge instead means the line's rendered path necessarily overlaps
   //      the entire bar width to get there. Real bug first found in
-  //      dig/diagrams/editor-lsp-sequence.html (fixed 2026-07-11): five
+  //      explained/diagrams/editor-lsp-sequence.html (fixed 2026-07-11): five
   //      response arrows anchored at the server bar's right edge (634)
   //      while heading left to the client (300), instead of the bar's left
   //      edge (626) that actually faces the client; same defect in
-  //      dig/diagrams/internal-components-sequence.html for a bar facing a
+  //      explained/diagrams/internal-components-sequence.html for a bar facing a
   //      lifeline to its right. Detected as an *open-interval* overlap
   //      (excluding exact edge touches) between the line's [xa, xb] span
   //      and the bar's [x, x+width] span, scoped to the same PHASE band and

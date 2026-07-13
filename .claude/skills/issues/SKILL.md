@@ -16,9 +16,9 @@ skill audits code that already exists, whether or not it was just changed. For
 checking whether dependency/language versions are current, use the `updates`
 skill instead.
 
-This skill's saved output lives under `dig/` — the shared home for the artifacts
-of the `draw`, `explain`, `issues`, and `updates` skills (`dig/DIAGRAMS.md` +
-`dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
+This skill's saved output lives under `explained/` — the shared home for the artifacts
+of the `draw`, `explain`, `issues`, and `updates` skills (`explained/DIAGRAMS.md` +
+`explained/diagrams/*.html`, `explained/EXPLAINED.md`, `explained/ISSUES.md`, `explained/UPDATE.md`
 respectively).
 
 ## Before analysing
@@ -27,7 +27,7 @@ respectively).
    the scope. If they named a directory/module, that's the scope. If they said
    "the project" or gave nothing, treat the whole `src/` tree as scope but say
    so, and offer to narrow it. If ambiguous, ask before spending effort.
-2. Before starting a new analysis, read `dig/ISSUES.md` (if it exists) to see
+2. Before starting a new analysis, read `explained/ISSUES.md` (if it exists) to see
    what has already been reported. If a finding is already recorded there, don't
    re-report it as new — note it's known, and focus on what's changed or
    uncovered since.
@@ -103,7 +103,7 @@ outranks any number of style nits.
 
 While reading, check the code against every claim made about it: inline
 comments, doc comments/docstrings, `README.md`, and any project docs
-(`dig/EXPLAINED.md`, `dig/DIAGRAMS.md`, design notes). When code and documentation
+(`explained/EXPLAINED.md`, `explained/DIAGRAMS.md`, design notes). When code and documentation
 disagree — a comment describing behaviour the code no longer has, a README flag
 that doesn't exist, a docstring with the wrong return contract — **report the
 mismatch and ask the user which side is wrong**: should the code change to match
@@ -137,14 +137,14 @@ release notes here.
 ## Saving findings
 
 - Once you've presented the findings, ask the user whether they want you to save
-  them to `dig/ISSUES.md`, or whether they have follow-up questions. Keep asking
+  them to `explained/ISSUES.md`, or whether they have follow-up questions. Keep asking
   after each answer until the user tells you to either save or discard.
-- Once the user confirmed saving to `dig/ISSUES.md` or discarding the
+- Once the user confirmed saving to `explained/ISSUES.md` or discarding the
   explanation, if there were `:i` comments in the file(s) you explained 
   ask if the user wants you to delete those comments. Do not touch `:i` in other
   files.
 - When saving, append the findings under a dated, scope-labelled heading rather
-  than overwriting the file, so `dig/ISSUES.md` accumulates a history. Keep each
+  than overwriting the file, so `explained/ISSUES.md` accumulates a history. Keep each
   entry's `file_path:line_number` anchors and severity grouping intact. When a
   previously recorded finding has since been fixed, mark it resolved rather than
   silently dropping it.
