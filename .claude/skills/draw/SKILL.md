@@ -66,7 +66,7 @@ browser.
   (create the `dig/diagrams/` directory if missing), and add an entry to
   `dig/DIAGRAMS.md` (create it if missing) pointing at it — every artifact
   this skill produces lives under `dig/`, the shared home for the outputs
-  of the `draw`, `explain`, `issues`, and `update` skills. A one-line link
+  of the `draw`, `explain`, `issues`, and `updates` skills. A one-line link
   is not enough — write the same kind of code-grounded explanation the
   `/explain` skill writes to `dig/EXPLAINED.md`: what the diagram covers,
   plus the non-obvious behavior

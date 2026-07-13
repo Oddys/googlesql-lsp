@@ -11,7 +11,7 @@ programming, but nothing project-specific, except for specified in
 `dig/EXPLAINED.md` (previously explained by invoking this skill).
 
 This skill's saved output lives under `dig/` — the shared home for the
-artifacts of the `draw`, `explain`, `issues`, and `update` skills
+artifacts of the `draw`, `explain`, `issues`, and `updates` skills
 (`dig/DIAGRAMS.md` + `dig/diagrams/*.html`, `dig/EXPLAINED.md`,
 `dig/ISSUES.md`, `dig/UPDATE.md` respectively).
 

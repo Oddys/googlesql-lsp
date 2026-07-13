@@ -1,9 +1,9 @@
 ---
-name: update
+name: updates
 description: Checks whether the language edition/version and the declared dependency versions in a target are the latest, and suggests bump-ups worth taking. For each outdated library, looks up what a chosen upgrade would buy (security fixes, bug fixes, API/perf improvements) and what it would cost (breaking changes, migration effort). Use when the user says "check for updates", "are my dependencies up to date", "what can I bump", "suggest version upgrades", or asks whether a library/language version is current.
 ---
 
-# Update
+# Updates
 
 Check whether the language edition/version and the dependency versions in a
 target — a file, a directory, or the whole project — are current, and tell the
@@ -16,7 +16,7 @@ in the target itself, use the `issues` skill instead — this skill is only abou
 version currency.
 
 This skill's saved output lives under `dig/` — the shared home for the artifacts
-of the `draw`, `explain`, `issues`, and `update` skills (`dig/DIAGRAMS.md` +
+of the `draw`, `explain`, `issues`, and `updates` skills (`dig/DIAGRAMS.md` +
 `dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
 respectively).
 

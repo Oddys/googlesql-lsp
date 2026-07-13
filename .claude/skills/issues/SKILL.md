@@ -1,6 +1,6 @@
 ---
 name: issues
-description: Analyses a file, directory, module, or the whole project to surface potential issues — bugs and uncovered edge cases, security risks, performance concerns, and non-idiomatic style. Also flags code/documentation mismatches. Use when the user says "find issues in X", "review X for problems", "what could go wrong in X", "audit X", or asks what could be improved. For checking whether dependency/language versions are current, use the `update` skill instead.
+description: Analyses a file, directory, module, or the whole project to surface potential issues — bugs and uncovered edge cases, security risks, performance concerns, and non-idiomatic style. Also flags code/documentation mismatches. Use when the user says "find issues in X", "review X for problems", "what could go wrong in X", "audit X", or asks what could be improved. For checking whether dependency/language versions are current, use the `updates` skill instead.
 ---
 
 # Issues
@@ -13,11 +13,11 @@ with a concrete failure or improvement, not a vague worry.
 
 Do not confuse this with `code-review` (which reviews the working diff) — this
 skill audits code that already exists, whether or not it was just changed. For
-checking whether dependency/language versions are current, use the `update`
+checking whether dependency/language versions are current, use the `updates`
 skill instead.
 
 This skill's saved output lives under `dig/` — the shared home for the artifacts
-of the `draw`, `explain`, `issues`, and `update` skills (`dig/DIAGRAMS.md` +
+of the `draw`, `explain`, `issues`, and `updates` skills (`dig/DIAGRAMS.md` +
 `dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
 respectively).
 
@@ -114,9 +114,9 @@ Use `AskUserQuestion` when there are a few discrete mismatches to resolve.
 ## Version currency
 
 Checking whether dependency or language versions are out of date is out of
-scope for this skill — that's the `update` skill's job. If, while analysing, you
+scope for this skill — that's the `updates` skill's job. If, while analysing, you
 notice the target depends on something conspicuously old, mention it in one line
-and point the user at `update` for a proper currency check; don't start fetching
+and point the user at `updates` for a proper currency check; don't start fetching
 release notes here.
 
 ## Reporting
