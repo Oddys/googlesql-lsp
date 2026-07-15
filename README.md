@@ -7,7 +7,8 @@ BigQuery itself reports, not an approximate third-party grammar.
 
 It works by wrapping the prebuilt `execute_query` binary from the GoogleSQL release in
 `--mode=parse` mode (which runs *only* the parser), scraping the error location, and
-surfacing it to the editor as LSP diagnostics. **No C++/Bazel build and no Docker required.**
+surfacing it to the editor as LSP diagnostics. **No C++/Bazel build required** — Docker is
+optional, only for hosts without a matching native binary (e.g. Intel macOS).
 
 ```
 Zed ──stdio LSP──▶ googlesql-lsp ──▶ execute_query --mode=parse ──▶ "... [at L:C]"
@@ -21,7 +22,7 @@ Zed ──stdio LSP──▶ googlesql-lsp ──▶ execute_query --mode=parse 
 | --- | --- |
 | `src/` | The `googlesql-lsp` language server (Rust, [`tower-lsp`](https://crates.io/crates/tower-lsp)). |
 | `zed-extension/` | The Zed extension (Rust → WASM) that attaches the server to Zed's `SQL` language. |
-| `scripts/install-parser.sh` | Downloads the prebuilt `execute_query` binary. |
+| `scripts/install-parser.sh` | Installs the `execute_query` parser — the prebuilt native binary, or (with `--docker`) a container wrapper. |
 | `scripts/smoke-test.sh` | Runs the parser on sample SQL so you can see the raw output. |
 
 ## Install
@@ -32,13 +33,32 @@ Zed ──stdio LSP──▶ googlesql-lsp ──▶ execute_query --mode=parse 
 ./scripts/install-parser.sh
 ```
 
-Downloads `execute_query` for your OS (macOS/Linux) from release `2026.01.1` into
+Downloads `execute_query` for your OS (macOS/Linux) from the latest GoogleSQL release into
 `~/.local/share/googlesql-lsp/execute_query`, clears the macOS quarantine flag, and
-verifies it runs.
+verifies it runs. Pin a specific release with `GOOGLESQL_VERSION=<tag> ./scripts/install-parser.sh`.
 
 > On macOS the binary is unsigned; the script removes the Gatekeeper quarantine
 > attribute. If macOS still blocks it, allow it once under
 > **System Settings → Privacy & Security**.
+
+#### Docker mode (Intel macOS / no native binary)
+
+Recent releases ship an **arm64-only** macOS binary, so on an **Intel Mac** the native
+install fails with `bad CPU type in executable`. Use Docker mode to run the *latest* parser
+in a Linux container instead:
+
+```bash
+GOOGLESQL_USE_DOCKER=1 ./scripts/install-parser.sh   # or: ./scripts/install-parser.sh --docker
+```
+
+This loads the release's image (`googlesql_ubuntu`) and installs a small wrapper at the same
+`~/.local/share/googlesql-lsp/execute_query` path — so the server invokes it exactly like the
+native binary, with no extra configuration. Requires Docker (or a Docker-compatible CLI like
+Podman) with a running daemon.
+
+> The wrapper keeps one long-lived helper container (`googlesql-lsp`) up for speed and reuses
+> it across sessions. Stop and remove it any time with `docker rm -f googlesql-lsp`; the next
+> parse recreates it.
 
 ### 2. Build & install the language server
 
@@ -103,5 +123,6 @@ files light up with no extra config. To also run the server on other suffixes (e
 GoogleSQL is a large Bazel/C++ project with only "experimental" macOS build support.
 But each release ships a prebuilt native `execute_query` binary whose `--mode=parse`
 exposes exactly the parser we need — so we wrap that instead of compiling the parser
-ourselves. This keeps the whole thing build-free and Docker-free while still using
-Google's real parser.
+ourselves. This keeps the whole thing build-free while still using Google's real parser.
+(On hosts without a matching native binary, the same release's Docker image provides the
+identical parser — see **Docker mode** above.)
