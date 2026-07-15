@@ -93,8 +93,8 @@ outranks any number of style nits.
    - Zig: `defer`/`errdefer` for cleanup, `comptime` where it fits, slices over
      manual index bookkeeping, following the explicit-allocator convention.
 
-   Common to all: naming, dead code, error-handling idioms. Keep these last and
-   keep them brief; do not let style noise bury a real bug.
+   Common to all: naming, dead code, repetitive code, error-handling idioms. 
+   Keep these last and keep them brief; do not let style noise bury a real bug.
 
 ## Documentation alignment
 
