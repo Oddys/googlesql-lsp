@@ -16,10 +16,7 @@ skill audits code that already exists, whether or not it was just changed. For
 checking whether dependency/language versions are current, use the `updates`
 skill instead.
 
-This skill's saved output lives under `explained/` — the shared home for the artifacts
-of the `draw`, `explain`, `issues`, and `updates` skills (`explained/DIAGRAMS.md` +
-`explained/diagrams/*.html`, `explained/EXPLAINED.md`, `explained/ISSUES.md`, `explained/UPDATE.md`
-respectively).
+This skill's saved output lives in the `explained/ISSUES.md` file.
 
 ## Before analysing
 

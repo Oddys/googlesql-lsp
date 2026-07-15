@@ -15,10 +15,7 @@ For finding bugs, security holes, performance problems, or non-idiomatic code
 in the target itself, use the `issues` skill instead — this skill is only about
 version currency.
 
-This skill's saved output lives under `dig/` — the shared home for the artifacts
-of the `draw`, `explain`, `issues`, and `updates` skills (`dig/DIAGRAMS.md` +
-`dig/diagrams/*.html`, `dig/EXPLAINED.md`, `dig/ISSUES.md`, `dig/UPDATE.md`
-respectively).
+This skill's saved output lives in the `explained/UPDATES.md` file.
 
 ## Before checking
 
@@ -26,7 +23,7 @@ respectively).
    dependency check to what that code actually uses. If they said "the project"
    or gave nothing, treat the whole project's manifest+lockfile as scope, but
    say so.
-2. Before starting a new check, read `dig/UPDATE.md` (if it exists) to see what
+2. Before starting a new check, read `explained/UPDATES.md` (if it exists) to see what
    was previously reported. Use it to spot what's changed since — a dependency
    that was flagged and has now been bumped, or one that's fallen further behind.
 3. Identify the manifest and lockfile for the language and read them fully —
@@ -85,10 +82,10 @@ Don't fetch release notes for a dozen libraries uninvited, and don't assume
 ## Saving findings
 
 - Once you've presented the currency check, ask the user whether they want you
-  to save it to `dig/UPDATE.md`, or whether they have follow-up questions. Keep
+  to save it to `explained/UPDATES.md`, or whether they have follow-up questions. Keep
   asking after each answer until the user tells you to either save or discard.
 - When saving, append under a dated heading rather than overwriting, so
-  `dig/UPDATE.md` accumulates a history of currency checks. Keep the
+  `explained/UPDATES.md` accumulates a history of currency checks. Keep the
   `current → latest (patch/minor/major)` list and the buy/cost notes for each
   investigated upgrade. When a previously flagged dependency has since been
   upgraded, mark it done rather than silently dropping it.

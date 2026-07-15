@@ -1,6 +1,6 @@
 ---
 name: draw
-description: Draws diagrams (sequence diagrams, architecture/component diagrams, flowcharts) illustrating the structure and interactions of components in this project. Use when the user says "draw X", "diagram X", "show me how X talks to Y", or asks to visualize an architecture, flow, or protocol.
+description: Draws diagrams (sequence diagrams, architecture/component diagrams, flowcharts, data lineage diagrams) illustrating the structure and interactions of components in this project. Use when the user says "draw X", "diagram X", "show me how X talks to Y", asks to visualize an architecture, flow, or protocol, or as a follow-up to calling the `explain` skill.
 ---
 
 # Draw
@@ -21,6 +21,7 @@ browser.
      boxes + connecting lines, grouped by layer or crate/package.
    - **Flowchart** — control flow or decision logic inside one component
      (branches, loops, early returns).
+   - **Data lineage diagrams** - how data flows from upstream to downstream tables
    If the request is ambiguous about scope or shape, ask rather than guess.
 2. Read the relevant source file(s) in full before drawing. Every actor,
    message name, function name, and condition in the diagram must trace
@@ -64,18 +65,10 @@ browser.
   Use the exact template below rather than inventing a new mechanism.
 - Save to `explained/diagrams/<kebab-case-topic>.html` under the project root
   (create the `explained/diagrams/` directory if missing), and add an entry to
-  `explained/DIAGRAMS.md` (create it if missing) pointing at it — every artifact
-  this skill produces lives under `explained/`, the shared home for the outputs
-  of the `draw`, `explain`, `issues`, and `updates` skills. A one-line link
-  is not enough — write the same kind of code-grounded explanation the
-  `/explain` skill writes to `explained/EXPLAINED.md`: what the diagram covers,
-  plus the non-obvious behavior
-  it makes visible (debounce/race conditions, error-handling quirks,
-  which calls do/don't route through a given layer, etc.), each claim
-  tied to a `file:line`. A reader who never opens the HTML should still
-  come away knowing the interesting things the code does. Keep it to a
-  few short paragraphs or bullets, not a full walkthrough — this is a
-  pointer with the highlights, not a duplicate of `/explain`'s output.
+  `explained/DIAGRAMS.md` (create it if missing) pointing at it. The entry format
+  is `<diagram file name>: <what the diagram illustrates>`. Each entry should allow
+  to quickly track what has been drawn so far, 
+  not provide any explanations of concepts being illustrated.
 - SVG must use `viewBox` (not fixed pixel width) and sit inside a
   horizontally-scrollable wrapper, so wide diagrams don't break layout.
 - **Tall sequence diagrams need a frozen lane header, not a legend.** The
@@ -90,24 +83,22 @@ browser.
   row) into a second, small `position: sticky` SVG pinned above the
   diagram, and sync its horizontal scroll to the main diagram via JS —
   the frozen-header-row pattern spreadsheets use. See `.lane-sticky` /
-  `.lane-sticky-scroll` in the template below, copied verbatim from
-  `explained/diagrams/internal-components-sequence.html` and
-  `explained/diagrams/editor-lsp-sequence.html` in this repo. Skip it for short
+  `.lane-sticky-scroll` in the template below. Skip it for short
   diagrams and for architecture/flowchart diagrams, where there's no
   header-scrolls-away problem.
-  - **Don't let the sticky copy render at the same time as the real
-    header.** `position: sticky` keeps `.lane-sticky` in normal document
-    flow until it would scroll past the viewport top — so at the very
-    top of the page, both it *and* the real header `<g>` (drawn inside
-    the main SVG, right below it) are on-screen at once, reading as a
-    duplicated header row. Wrap the real header `<g>` blocks in the main
-    SVG in `<g id="lane-header">` and hide `.lane-sticky` while that
-    element is still visible, showing it only once the real header has
-    scrolled out of frame — see the `IntersectionObserver` block at the
-    end of the template's `<script>`. Do the visibility check
-    synchronously on load (via `getBoundingClientRect()`) as well as on
-    intersection change, so there's no flash of the duplicate before JS
-    runs.
+- **Don't let the sticky copy render at the same time as the real
+  header.** `position: sticky` keeps `.lane-sticky` in normal document
+  flow until it would scroll past the viewport top — so at the very
+  top of the page, both it *and* the real header `<g>` (drawn inside
+  the main SVG, right below it) are on-screen at once, reading as a
+  duplicated header row. Wrap the real header `<g>` blocks in the main
+  SVG in `<g id="lane-header">` and hide `.lane-sticky` while that
+  element is still visible, showing it only once the real header has
+  scrolled out of frame — see the `IntersectionObserver` block at the
+  end of the template's `<script>`. Do the visibility check
+  synchronously on load (via `getBoundingClientRect()`) as well as on
+  intersection change, so there's no flash of the duplicate before JS
+  runs.
 - **An activation bar (the thin "handler running" rect on a lifeline) must
   span the actor's full busy time — it must start no later than the request
   arrow that wakes it and end no earlier than the response arrow it sends.**
@@ -123,13 +114,7 @@ browser.
   leaves the response arrow, and often a note box describing what happened
   in between, floating below the bar with no activation behind them, which
   reads as the handler having already gone idle before it actually replied.
-  This shipped broken in `explained/diagrams/editor-lsp-sequence.html` (fixed
-  2026-07-11): the server's activation bar around `spawn_blocking(run_parse)`
-  ended 48px before the `textDocument/publishDiagnostics` response it sent,
-  and a shorter version of the same bug ended the `shutdown` activation 14px
-  before its `Ok(()) ` response — both invisible from a quick look at the
-  rendered SVG, only obvious once you compare the bar's `y+height` against
-  the response arrow's `y`. When a bar covers a nested call to another actor
+  When a bar covers a nested call to another actor
   (e.g. the server's bar around a subprocess round-trip), the nested actor
   gets its own, shorter bar for just the call/response pair, but the outer
   bar must keep running until *it* replies, not until the nested call
@@ -156,16 +141,12 @@ because the numbers look plausible — actual glyph width depends on the
 rendering font's real metrics, and a cubic Bézier's visual peak is *not*
 its control-point y (a symmetric curve's peak sits 25% of the way from
 the control point toward the endpoint, `0.25*endpoint + 0.75*control`,
-not at the control point itself). Both of these have shipped broken in
-this repo's diagrams before — text overflowing note boxes and lane
-headers, and curved guest→host callback arrows drawn directly through
-their own caption text — and neither was visible from reading the SVG
-source, only from how it actually renders.
+not at the control point itself).
 
 After writing (or editing) the file, and again after any edit that
 touches box dimensions, text content, or path/line coordinates, run:
 
-```
+```sh
 .claude/skills/draw/scripts/verify-diagram.sh path/to/explained/diagrams/<name>.html
 ```
 
@@ -185,17 +166,12 @@ It exits 0 and prints `OK` when clean, or exits 1 with a JSON list of
 every offending element (box/curve coordinates, overflow amount, the
 crossing point) when not. **Do not present the diagram as finished, and
 do not add it to `explained/DIAGRAMS.md`, while this reports issues.** Fix the
-reported elements and re-run — don't just eyeball the next screenshot,
-since a few pixels of overflow or a shallow curve-through-text crossing
-can be easy to miss even when looking right at it (see
-`explained/diagrams/zed-extension-registration-sequence.html`'s git history
-for a worked example of both defect classes and their fixes).
+reported elements and re-run.
 
 If no Chrome/Chromium is available, the script says so; take an actual
 screenshot (e.g. via a headless-browser tool) and inspect it at 100%
 zoom instead of skipping verification — don't fall back to reading the
-SVG source and eyeballing the numbers, which is exactly what let both
-defect classes ship originally.
+SVG source and eyeballing the numbers.
 
 When fixing overflow, prefer (in order): shortening the wording, then
 widening the box if room exists before the next lane/lifeline, then
@@ -209,8 +185,7 @@ peak/caption clearance and re-run the verifier to confirm.
 
 ## Template
 
-Start every diagram from this skeleton (it's the exact pattern already
-used in `explained/diagrams/*.html` in this repo — stay consistent with it). Fill
+Start every diagram from this skeleton. Fill
 in `<TITLE>`, the `--actorN` color variables, the legend, and the SVG body.
 Keep the theme CSS block and the toggle script byte-for-byte; only the
 content inside `.wrap` and the accent color values should change. The

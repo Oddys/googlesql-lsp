@@ -8,23 +8,18 @@ description: Explains the code in a file, a config file, or a project-related co
 Produce a clear, self-contained explanation of a file, a piece of config, or a
 project concept. Write for a competent software engineer who know general
 programming, but nothing project-specific, except for specified in
-`explained/EXPLAINED.md` (previously explained by invoking this skill).
+`explained/LEVEL.md` (the user's current level of the project's knowledge).
 
 This skill's saved output lives under `explained/` — the shared home for the
 artifacts of the `draw`, `explain`, `issues`, and `updates` skills
 (`explained/DIAGRAMS.md` + `explained/diagrams/*.html`, `explained/EXPLAINED.md`,
-`explained/ISSUES.md`, `explained/UPDATE.md` respectively).
+`explained/ISSUES.md`, `explained/UPDATES.md` respectively).
 
 ## Before writing
 
 1. Identify exactly what's being asked about: a specific file, a symbol
    inside a file, a config file, or a conceptual question ("how does X
    work here"). If ambiguous, ask.
-2. Before answering a new question read `explained/EXPLAINED.md` to identify what
-   was explained so far. If being asked about something that has been already
-   explained - ask the user if: 1) they you to repeat your previous explanation
-   or 2) the explanation was not clear enough and they need rephrasing and
-   simplification
 3. Read the target file(s) in full — don't explain from a partial read or
    from memory of similar codebases.
 4. If the file references other project-specific types, functions, or
@@ -81,13 +76,14 @@ Adapt the shape to what's being explained, but generally cover:
 
 ## Saving findings
 - Once done with the explanation, ask the user if they want you to save 
-  this explanation to `explained/EXPLAINED.md` or do they have more questions
+  this explanation to `explained/prose/` or do they have more questions
   Proceed with asking after your every answer until the user tells
-  you either to save or do not save your explanation. 
-- Once the user confirmed saving to `explained/EXPLAINED.md` or discarding the
+  you either to save or do not save your explanation.
+- Save into a file with a name that clearly shows what that file explains 
+- Once the user confirmed saving to `explained/prose/` or discarding the
   explanation, if there were `:e` comments in the file(s) you explained 
   ask if the user wants you to delete those comments. Do not touch `:e` in other
   files.
-- Upon finishing check if `explained/DIAGRAMS.md` does not contain obsolete or
-  misleading descriptions. If it does - suggest to the user to call the `draw`
-  skill for the diagram that needs redrawing
+- Upon finishing check the index in `explained/DIAGRAMS.md`: if you can add more diagrams  
+  illustrating what you've just explained or update the existing diagrams - 
+  suggest to the user to call the `draw` skill
