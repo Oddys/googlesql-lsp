@@ -69,9 +69,6 @@ Adapt the shape to what's being explained, but generally cover:
 
 - Use `file_path:line_number` references so the user can jump to the
   source, but don't just paraphrase code line-by-line — synthesize intent.
-  Store line number(s) as a reference - by clicking on it the user
-  should be able to go to the given line / first line of the given range in
-  the corresponding file in this repository.
 - Prefer prose and short lists over long code dumps; quote only the
   minimal snippet needed to anchor a point.
 - Keep it proportional: a 30-line helper doesn't need the same depth as

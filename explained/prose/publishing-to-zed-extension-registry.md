@@ -132,9 +132,9 @@ non-Zed users of the server.
 
 | Change | Where | Why |
 | --- | --- | --- |
-| Rewrite `language_server_command` to download the server from GitHub releases (PATH as fallback) | `zed-extension/src/lib.rs` | Registry users never `cargo install`; Zed won't build the server |
+| Rewrite `language_server_command` to download the server from GitHub releases (PATH as fallback) | `zed-extension/src/lib.rs:19` | Registry users never `cargo install`; Zed won't build the server |
 | Add a CI release workflow that publishes prebuilt `googlesql-lsp` binaries per platform | new `.github/workflows/…` | Gives the extension something to download |
-| Auto-fetch `execute_query` (in the server, on first run) | `src/parser.rs` / server startup | Removes the manual `install-parser.sh` step |
+| Auto-fetch `execute_query` (in the server, on first run) | `src/parser.rs:11` / server startup | Removes the manual `install-parser.sh` step |
 | Commit `Cargo.lock`, keep `*.wasm` ignored, bump `zed_extension_api` | `.gitignore`, `zed-extension/Cargo.toml` | Reproducible, clean registry build |
 | Open a PR to `zed-industries/extensions` with a `path = "zed-extension"` entry | external repo | The actual publish step |
 

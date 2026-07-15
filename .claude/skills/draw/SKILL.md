@@ -137,6 +137,27 @@ browser.
   for every actor or message that came from a specific place in the code.
   Never collapse multiple sources onto one line; a reader scanning for a
   specific reference needs to find it without parsing a run-on sentence.
+- **Every source reference must be a clickable link to the code on GitHub.**
+  The diagram is viewed in a browser, so a bare `path:line` string can't be
+  navigated. Wrap each reference in an `<a>` pointing at a GitHub **permalink**
+  for this repo — pinned to the exact commit the diagram was drawn against, so
+  the line numbers never drift as the file changes. First capture the current
+  commit SHA:
+
+  ```sh
+  git rev-parse HEAD
+  ```
+
+  Then build each URL as
+  `https://github.com/Oddys/googlesql-lsp/blob/<commit-sha>/<path>#L<start>`
+  for a single line, or `…#L<start>-L<end>` for a range (e.g. against commit
+  `abc1234`, `src/parser.rs:12-34` →
+  `https://github.com/Oddys/googlesql-lsp/blob/abc1234/src/parser.rs#L12-L34`).
+  Use the full 40-char SHA (an abbreviated one works too, but the full SHA is
+  unambiguous). Keep the visible link text as the `path:line` form. Clicking it
+  opens the file at that commit scrolled to the line on github.com even when the
+  diagram itself is opened via `file://`. Don't use `blob/main` — a branch link
+  drifts off the cited line as soon as the file above it changes.
 
 ## Before calling it done — run the layout verifier, don't eyeball it
 
@@ -295,6 +316,8 @@ together, per the hard constraint above.
   .sources tr:first-child { border-top: none; }
   .sources td { padding: 4px 16px 4px 0; vertical-align: top; line-height: 1.6; }
   .sources td:first-child { white-space: nowrap; color: var(--ink); }
+  .sources a { color: var(--actor2); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .sources a:hover { border-bottom-color: var(--actor2); }
 </style>
 
 <div class="wrap">
@@ -346,8 +369,8 @@ together, per the hard constraint above.
     <p class="sources-label">Sources</p>
     <table class="sources">
       <tbody>
-        <!-- one <tr> per source; first <td> is the path:line ref, second is what it grounds -->
-        <tr><td class="mono"><!-- path/to/file.rs:12-34 --></td><td><!-- what this cites --></td></tr>
+        <!-- one <tr> per source; first <td> is the path:line ref linked to a GitHub permalink (commit SHA from `git rev-parse HEAD`), second is what it grounds -->
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/<COMMIT_SHA>/path/to/file.rs#L12-L34"><!-- path/to/file.rs:12-34 --></a></td><td><!-- what this cites --></td></tr>
       </tbody>
     </table>
   </footer>
@@ -409,9 +432,10 @@ together, per the hard constraint above.
 
 - Ground every label in the actual code: real method names, real file
   names, real condition text — not paraphrases.
-  Store line number(s) as a reference - by clicking on it the user
-  should be able to go to the given line / first line of the given range in
-  the corresponding file in this repository.
+  Store line number(s) as a reference and render it as a GitHub permalink
+  pinned to the draw-time commit SHA (see the sources hard constraint above)
+  so that clicking it in the browser opens the corresponding file in this
+  repository scrolled to the given line / first line of the given range.
 - Keep a legend for every visual convention introduced (solid vs. dashed
   arrows, box colors, note boxes) — a diagram nobody can decode is worse
   than prose.

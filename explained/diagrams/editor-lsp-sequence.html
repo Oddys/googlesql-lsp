@@ -182,6 +182,10 @@
   .sources tr:first-child { border-top: none; }
   .sources td { padding: 4px 16px 4px 0; vertical-align: top; line-height: 1.6; }
   .sources td:first-child { white-space: nowrap; color: var(--ink); }
+  .sources a { color: var(--server); text-decoration: none; border-bottom: 1px solid var(--rule); }
+  .sources a:hover { border-bottom-color: var(--server); }
+  .src-ref { fill: var(--server); text-decoration: underline; }
+  svg a { cursor: pointer; }
   footer > p:last-child { margin: 14px 0 0; }
 
   @media (prefers-reduced-motion: no-preference) {
@@ -295,7 +299,7 @@
 
         <g>
           <rect x="638" y="304" width="404" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if binary missing: window/showMessage (error) — backend.rs:119&ndash;127</text>
+          <text x="650" y="325" font-size="11" fill="var(--ink-dim)">if binary missing: window/showMessage (error) — <a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/backend.rs#L119-L127"><tspan class="src-ref">backend.rs:119&ndash;127</tspan></a></text>
         </g>
 
         <!-- ================= PHASE: Edit cycle ================= -->
@@ -323,7 +327,7 @@
 
         <g class="pulse">
           <rect x="700" y="598" width="340" height="34" rx="6" fill="var(--note-bg)" stroke="var(--note-border)" stroke-width="1"/>
-          <text x="712" y="619" font-size="11" fill="var(--ink-dim)">ticket #1 wakes, sees #2 is newer, exits — backend.rs:57</text>
+          <text x="712" y="619" font-size="11" fill="var(--ink-dim)">ticket #1 wakes, sees #2 is newer, exits — <a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/backend.rs#L57"><tspan class="src-ref">backend.rs:57</tspan></a></text>
         </g>
 
         <!-- after debounce: spawn_blocking -->
@@ -411,11 +415,11 @@
     <p class="sources-label">Sources</p>
     <table class="sources">
       <tbody>
-        <tr><td class="mono">backend.rs:94&ndash;129</td><td><span class="mono">initialize</span> / <span class="mono">initialized</span></td></tr>
-        <tr><td class="mono">backend.rs:131&ndash;156</td><td><span class="mono">did_open</span> / <span class="mono">did_change</span> / <span class="mono">did_save</span> / <span class="mono">did_close</span></td></tr>
-        <tr><td class="mono">backend.rs:41&ndash;69</td><td>debounce logic</td></tr>
-        <tr><td class="mono">parser.rs:55&ndash;63</td><td>subprocess call</td></tr>
-        <tr><td class="mono">diagnostics.rs:25&ndash;52</td><td><span class="mono">parse_output</span> — regexes <span class="mono">ERROR: ... [at L:C]</span> lines into <span class="mono">Diagnostic</span>s</td></tr>
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/backend.rs#L94-L129">backend.rs:94&ndash;129</a></td><td><span class="mono">initialize</span> / <span class="mono">initialized</span></td></tr>
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/backend.rs#L131-L156">backend.rs:131&ndash;156</a></td><td><span class="mono">did_open</span> / <span class="mono">did_change</span> / <span class="mono">did_save</span> / <span class="mono">did_close</span></td></tr>
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/backend.rs#L41-L69">backend.rs:41&ndash;69</a></td><td>debounce logic</td></tr>
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/parser.rs#L55-L63">parser.rs:55&ndash;63</a></td><td>subprocess call</td></tr>
+        <tr><td class="mono"><a href="https://github.com/Oddys/googlesql-lsp/blob/49f6333830a318ca7c6820486e088a7d708b0228/src/diagnostics.rs#L25-L52">diagnostics.rs:25&ndash;52</a></td><td><span class="mono">parse_output</span> — regexes <span class="mono">ERROR: ... [at L:C]</span> lines into <span class="mono">Diagnostic</span>s</td></tr>
       </tbody>
     </table>
     <p>All method names and the 250ms debounce constant are taken verbatim from the current source, not the LSP spec in general.</p>
