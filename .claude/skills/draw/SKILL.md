@@ -65,10 +65,14 @@ browser.
   Use the exact template below rather than inventing a new mechanism.
 - Save to `explained/diagrams/<kebab-case-topic>.html` under the project root
   (create the `explained/diagrams/` directory if missing), and add an entry to
-  `explained/DIAGRAMS.md` (create it if missing) pointing at it. The entry format
-  is `<diagram file name>: <what the diagram illustrates>`. Each entry should allow
-  to quickly track what has been drawn so far, 
-  not provide any explanations of concepts being illustrated.
+  `explained/DIAGRAMS.md` (create it if missing) pointing at it. `DIAGRAMS.md` is
+  **only an index** — the detailed explanations live in `explained/prose/`, never
+  here. Each entry is exactly two parts and nothing more:
+  1. a `##` header linking the file: `## [`diagrams/<name>.html`](diagrams/<name>.html) — <short title>`
+  2. a single short sentence (one line) saying what the diagram shows.
+  Do **not** add sub-bullets, "key behavior" lists, source citations, file:line
+  references, or any explanation of the concepts — those belong in the diagram
+  itself and in `explained/prose/`.
 - SVG must use `viewBox` (not fixed pixel width) and sit inside a
   horizontally-scrollable wrapper, so wide diagrams don't break layout.
 - **Tall sequence diagrams need a frozen lane header, not a legend.** The
