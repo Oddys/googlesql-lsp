@@ -99,10 +99,9 @@ outranks any number of style nits.
 ## Documentation alignment
 
 While reading, check the code against every claim made about it: inline
-comments, doc comments/docstrings, `README.md`, and any project docs
-(`explained/EXPLAINED.md`, `explained/DIAGRAMS.md`, design notes). When code and documentation
-disagree — a comment describing behaviour the code no longer has, a README flag
-that doesn't exist, a docstring with the wrong return contract — **report the
+comments, doc comments/docstrings, `README.md`, files in `explained/` dir. 
+When code and documentation disagree — a comment describing behaviour the code no longer has, 
+a README flag that doesn't exist, a docstring with the wrong return contract — **report the
 mismatch and ask the user which side is wrong**: should the code change to match
 the docs, or the docs change to match the code? Do not silently "fix" either;
 the mismatch itself is the finding, and only the user knows which was intended.

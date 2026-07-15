@@ -12,7 +12,7 @@ programming, but nothing project-specific, except for specified in
 
 This skill's saved output lives under `explained/` — the shared home for the
 artifacts of the `draw`, `explain`, `issues`, and `updates` skills
-(`explained/DIAGRAMS.md` + `explained/diagrams/*.html`, `explained/EXPLAINED.md`,
+(`explained/DIAGRAMS.md` + `explained/diagrams/*.html`, `explained/prose/*.md`,
 `explained/ISSUES.md`, `explained/UPDATES.md` respectively).
 
 ## Before writing
