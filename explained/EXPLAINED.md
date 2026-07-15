@@ -75,3 +75,77 @@ Per `zed-extension/Cargo.toml:8` (`crate-type = ["cdylib"]`), this crate compile
 **Non-obvious note**
 
 `zed::register_extension!(GoogleSqlExtension);` (line 35) is a macro (compile-time code generation), not a runtime call into a central registry. It expands to the `extern "C"` exports Zed's WASM host looks for by name when it loads the compiled `.wasm` module. "Registration" happens implicitly at load time: Zed loads the module (per `extension.toml`'s `id = "googlesql"`), finds those macro-generated exports, and uses them to instantiate `GoogleSqlExtension` and call its trait methods — there's no separate registry file elsewhere in the repo.
+
+## src/parser.rs
+
+**Purpose**
+
+The lowest layer: finds the `execute_query` binary on disk and shells out to it. This is the only file that knows anything about that external binary's invocation convention.
+
+**Key pieces**
+
+- **`find_binary()`** (lines 15–36) — implements the 3-tier lookup documented in the README's Configuration section: (1) the `$GOOGLESQL_EXECUTE_QUERY` env var, (2) the install script's default path (`~/.local/share/googlesql-lsp/execute_query`, via `default_install_path()`), (3) a `$PATH` scan for `execute_query` or `execute_query_macos`. Each tier is checked with `.is_file()` before being accepted, so a stale/misconfigured env var falls through to the next tier instead of failing outright. Returns `None` if nothing matches — callers (`Backend::new`, `src/backend.rs:36`) treat that as "the server runs but never produces diagnostics," not a fatal error.
+- **`which(name)`** (lines 39–48) — a hand-rolled, minimal version of the Unix `which` command: splits `$PATH` on the OS-appropriate separator (`std::env::split_paths` handles `:` vs `;` per platform) and checks each directory for the named file. Inlined rather than pulled in as a dependency since it's only a few lines.
+- **`run_parse(bin, sql)`** (lines 55–64) — spawns `execute_query --mode=parse <sql>` and returns stdout+stderr concatenated as one string.
+
+**Non-obvious decisions**
+
+- The SQL text is passed as `Command::new(bin).arg(...)` — a single argv element handed directly to the OS, not through a shell — so there's no shell-injection risk and no need to escape quotes/semicolons/etc. in the SQL itself.
+- The doc comment on `run_parse` flags a real gotcha: `execute_query` exits with status 0 even when the SQL has a syntax error — it reports failures via text on stdout (an `ERROR: ...` line), not the process exit code. That's why `run_parse` returns the raw text and leaves error-detection entirely to `diagnostics.rs`, rather than checking `output.status`.
+- Both stdout and stderr are captured and concatenated (lines 58–62) — defensive, in case a given build of the tool writes its error line to stderr instead of stdout.
+
+## src/diagnostics.rs
+
+**Purpose**
+
+The translation layer: turns `execute_query`'s plain-text output into `Diagnostic` structs (LSP's data type for a single red-squiggle-and-message annotation) that `Backend` can hand to the editor.
+
+**Key pieces**
+
+- **`LOC_RE` / `PREFIX_RE`** (lines 18, 21) — two `Lazy<Regex>` statics (from `once_cell`, meaning the regex is compiled once on first use and reused after, rather than recompiled on every call). `LOC_RE` matches the trailing `[at <line>:<col>]` location; `PREFIX_RE` matches the leading `ERROR: ` plus an optional status code like `INVALID_ARGUMENT: `.
+- **`parse_output(output, source)`** (lines 25–52) — the entry point, called from `Backend::compute_diagnostics` (`src/backend.rs:87`). Scans the tool's output line by line, and for every line starting with `ERROR:` (a successful parse produces AST dump lines instead, with no `ERROR:` prefix — see the module doc comment for a real example) it builds one `Diagnostic`. Multi-statement SQL (`SELECT 1; SELECT 2 FRM t;`) can produce one `ERROR:` line per failing statement, so this naturally yields multiple diagnostics.
+- **`clean_message(line)`** (lines 56–59) — strips both the `ERROR: [CODE:] ` prefix and the `[at L:C]` suffix off a raw error line, leaving just the human-readable message (e.g. `Syntax error: Expected ";" ...`) to show the user.
+- **`make_diagnostic(line, character, message, source)`** (lines 61–76) — builds the actual `Diagnostic`, converting the parser's 1-based line/column into LSP's 0-based `Position`. It extends the highlighted range to the end of that line (via `line_len_utf16`) rather than a single character, purely so the squiggle is visible in the editor — the parser only ever gives a single caret position, not a range.
+- **`line_len_utf16(source, line)`** (lines 79–85) — LSP positions are specified in UTF-16 code units, not bytes or Unicode scalar values, per the LSP spec (editors historically used UTF-16 internally, e.g. VS Code/JavaScript strings). This computes a given line's length in that unit so the diagnostic's end position doesn't run past the actual line — relevant if the line contains non-ASCII characters, where UTF-16 length differs from byte length.
+
+**Flow example**
+
+Given `execute_query`'s output `ERROR: INVALID_ARGUMENT: Syntax error: Expected ";" ... [at 1:14]`, `parse_output` extracts line 1, column 14 → converts to 0-based `Position { line: 0, character: 13 }`, strips the prefix/suffix to get the message `Syntax error: Expected ";" ...`, and extends the range's end to the end of line 0 so VS Code/Zed draws a visible squiggle rather than a 1-character sliver.
+
+**Non-obvious decision**
+
+If a line starts with `ERROR:` but has no matching `[at L:C]` (line 46–48), the diagnostic is anchored at `(0, 0)` — the very start of the file — rather than being dropped, so the user still sees *something* went wrong even without a precise location. The module has thorough unit tests (lines 87–141) covering exactly this and the other edge cases (multi-statement input, non-ASCII-adjacent columns via UTF-16 length, missing location).
+
+## src/backend.rs
+
+**Purpose**
+
+The orchestrator. Implements `tower-lsp`'s `LanguageServer` trait (the set of async methods a language server must handle — `initialize`, `did_open`, `did_change`, etc.) and owns all mutable state: which documents are open, their current text, and a debounce mechanism so a fresh parse isn't spawned on every keystroke.
+
+**Key pieces**
+
+- **`Backend` struct** (lines 20–28) — four fields, each `Arc`-wrapped (atomic reference-counted, so it can be cheaply cloned and shared across the `tokio::spawn`ed tasks below without copying the underlying data):
+  - `client: Client` — `tower-lsp`'s handle back to the editor, used to send notifications like `publish_diagnostics` or log messages.
+  - `documents: DashMap<Url, String>` — the concurrent hash map (from the `dashmap` crate — a `HashMap` that's safely mutable from multiple threads without an explicit external lock) holding each open file's latest full text.
+  - `versions: DashMap<Url, Arc<AtomicU64>>` — a per-document edit counter, explained below under debouncing.
+  - `binary: Arc<Option<PathBuf>>` — the `execute_query` path resolved once at startup via `parser::find_binary()` (line 36), or `None` if not found — checked at `initialized` (line 110) to warn the user, and again on every parse (line 78) to no-op instead of crashing.
+
+- **`schedule_parse(uri)`** (lines 41–69) — the debounce logic, called after every `did_open`/`did_change`/`did_save`:
+  1. It bumps a per-document `AtomicU64` counter (`versions`) and captures the *new* value as `ticket` (lines 43–47).
+  2. It spawns a `tokio::task` (an async green-thread, not an OS thread) that sleeps 250ms (`DEBOUNCE`, line 18) — the constant chosen so a process isn't spawned on every keystroke, per the module doc comment.
+  3. After waking, it re-checks the counter: if a *newer* edit bumped it past `ticket` while this task was asleep (line 57), this stale task just returns without doing anything — the newer task, sleeping in parallel, will do the real work when it wakes up. This is the actual debounce: many overlapping sleep-then-check tasks get spawned per burst of keystrokes, but only the very last one (whose ticket still matches when it wakes) survives to actually parse.
+  4. If it's still current, it reads the latest document text (line 61 — note it re-reads from `documents`, not from a captured copy, so it always parses the current text even if `schedule_parse` was called with older text in between), runs `compute_diagnostics`, and pushes the result via `client.publish_diagnostics`.
+
+- **`compute_diagnostics(binary, text)`** (lines 73–90) — the async bridge between LSP-land and the blocking subprocess call. Empty/whitespace-only text short-circuits to no diagnostics (line 74) and a missing binary short-circuits too (line 78–81, matching the `None` case from `find_binary()`). Otherwise it calls `parser::run_parse` inside `tokio::task::spawn_blocking` (line 84) — necessary because `run_parse` uses the blocking `std::process::Command::output()`, which would otherwise stall the whole async runtime's worker thread while waiting on the subprocess; `spawn_blocking` moves it to a dedicated thread pool for blocking work instead.
+
+- **`impl LanguageServer for Backend`** (lines 92–161) — the trait methods `tower-lsp` dispatches into per the LSP spec:
+  - `initialize` — declares capabilities; notably `TextDocumentSyncKind::FULL` (line 98), meaning the client sends the *entire* document text on every change rather than incremental diffs — simpler to implement, at the cost of more bytes over the wire (fine for typical SQL file sizes).
+  - `initialized` — fires once after the handshake completes; used here purely to log/warn about whether the parser binary was found (lines 109–129), not to do any protocol work.
+  - `did_open`/`did_change`/`did_save` — each stores the latest text (open/change) and calls `schedule_parse`. Note `did_change` (line 137–144) takes `.last()` of `content_changes` — safe specifically *because* sync mode is `FULL`, so there's exactly one change event carrying the whole new text; this would be wrong under incremental sync.
+  - `did_close` — removes the document from both maps and explicitly publishes an empty diagnostics list (line 155) so stale red squiggles don't linger in the editor's UI after the file is closed (LSP diagnostics are "sticky" until explicitly cleared or replaced).
+  - `shutdown` — a required trait method; there's nothing to clean up so it's a no-op `Ok(())`.
+
+**Non-obvious decisions**
+
+- The debounce is implemented without any cancellation API (no `AbortHandle`) — every scheduled task always runs to completion (including its full 250ms sleep), and staleness is detected cooperatively by comparing counters afterward, rather than actually cancelling the sleeping task. Simpler than wiring up cancellation, at the cost of harmless sleeping tasks accumulating during a fast typing burst.
+- All shared state is `Arc`+`DashMap`/`AtomicU64` rather than behind a single `Mutex` — this lets concurrent `tokio::spawn`ed tasks for *different* documents proceed without contending on each other's locks; `dashmap` internally shards its locking per key rather than being a single map-wide lock.
