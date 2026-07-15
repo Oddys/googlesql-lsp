@@ -69,6 +69,9 @@ Adapt the shape to what's being explained, but generally cover:
 
 - Use `file_path:line_number` references so the user can jump to the
   source, but don't just paraphrase code line-by-line — synthesize intent.
+  Store line number(s) as a reference - by clicking on it the user
+  should be able to go to the given line / first line of the given range in
+  the corresponding file in this repository.
 - Prefer prose and short lists over long code dumps; quote only the
   minimal snippet needed to anchor a point.
 - Keep it proportional: a 30-line helper doesn't need the same depth as
@@ -79,7 +82,8 @@ Adapt the shape to what's being explained, but generally cover:
   this explanation to `explained/prose/` or do they have more questions
   Proceed with asking after your every answer until the user tells
   you either to save or do not save your explanation.
-- Save into a file with a name that clearly shows what that file explains 
+- Pick up a file name that clearly communicates what that file explains. Get user's
+  approval for the name before saving 
 - Once the user confirmed saving to `explained/prose/` or discarding the
   explanation, if there were `:e` comments in the file(s) you explained 
   ask if the user wants you to delete those comments. Do not touch `:e` in other

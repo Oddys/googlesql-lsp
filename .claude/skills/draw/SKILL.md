@@ -405,6 +405,9 @@ together, per the hard constraint above.
 
 - Ground every label in the actual code: real method names, real file
   names, real condition text — not paraphrases.
+  Store line number(s) as a reference - by clicking on it the user
+  should be able to go to the given line / first line of the given range in
+  the corresponding file in this repository.
 - Keep a legend for every visual convention introduced (solid vs. dashed
   arrows, box colors, note boxes) — a diagram nobody can decode is worse
   than prose.
