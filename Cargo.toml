@@ -11,11 +11,14 @@ path = "src/main.rs"
 
 [dependencies]
 tower-lsp = "0.20"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "time"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "time", "sync"] }
 dashmap = "5"
 regex = "1"
 once_cell = "1"
 dirs = "5"
+# Blocking HTTP client (rustls TLS, no OpenSSL) used at first-run to resolve the
+# latest GoogleSQL release and download the Docker image tarball.
+ureq = { version = "2", default-features = false, features = ["tls"] }
 
 [profile.release]
 strip = true

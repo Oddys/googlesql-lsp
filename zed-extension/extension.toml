@@ -3,7 +3,7 @@ name = "GoogleSQL"
 version = "0.1.0"
 schema_version = 1
 authors = ["Oddys"]
-description = "Error highlighting for BigQuery (GoogleSQL) files, backed by Google's official GoogleSQL parser."
+description = "Error highlighting for BigQuery (GoogleSQL) files, backed by Google's official GoogleSQL parser. Requires a running Docker daemon to run the parser in a container."
 repository = "https://github.com/Oddys/googlesql-lsp"
 
 # We attach our language server to Zed's existing `SQL` language (provided by the

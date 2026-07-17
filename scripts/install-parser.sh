@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Deprecated: the parser invokes `execute_query` via Docker
 #
 # Installs the GoogleSQL `execute_query` parser where googlesql-lsp looks for it
 # by default (~/.local/share/googlesql-lsp/execute_query).

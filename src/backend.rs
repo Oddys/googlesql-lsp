@@ -1,17 +1,17 @@
 //! The LSP `Backend`: document store, debounced re-parsing, and diagnostic publishing.
 
-use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
 use dashmap::DashMap;
+use tokio::sync::OnceCell;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer};
 
 use crate::diagnostics::parse_output;
-use crate::parser;
+use crate::parser::{self, Parser};
 
 /// Delay after the last edit before we re-run the parser, to avoid spawning a process
 /// on every keystroke.
@@ -23,8 +23,9 @@ pub struct Backend {
     documents: Arc<DashMap<Url, String>>,
     /// Per-document edit counter; a scheduled parse runs only if it's still the latest.
     versions: Arc<DashMap<Url, Arc<AtomicU64>>>,
-    /// Resolved `execute_query` binary, or `None` if it couldn't be found.
-    binary: Arc<Option<PathBuf>>,
+    /// The Docker-backed parser, provisioned lazily on first use. Holds the
+    /// bootstrap error message (as a `String`) when provisioning failed.
+    parser: Arc<OnceCell<std::result::Result<Parser, String>>>,
 }
 
 impl Backend {
@@ -33,8 +34,14 @@ impl Backend {
             client,
             documents: Arc::new(DashMap::new()),
             versions: Arc::new(DashMap::new()),
-            binary: Arc::new(parser::find_binary()),
+            parser: Arc::new(OnceCell::new()),
         }
+    }
+
+    /// Provision the parser exactly once (downloading/loading the Docker image and
+    /// starting the container on the first call) and return the shared result.
+    async fn ensure_parser(&self) -> &std::result::Result<Parser, String> {
+        provision(&self.parser).await
     }
 
     /// Schedule a debounced parse for `uri`. Later edits supersede earlier scheduled runs.
@@ -44,11 +51,12 @@ impl Backend {
             .entry(uri.clone())
             .or_insert_with(|| Arc::new(AtomicU64::new(0)))
             .clone();
+        //Why is it called ticket?
         let ticket = version.fetch_add(1, Ordering::SeqCst) + 1;
 
         let documents = self.documents.clone();
         let client = self.client.clone();
-        let binary = self.binary.clone();
+        let parser_cell = self.parser.clone();
 
         tokio::spawn(async move {
             tokio::time::sleep(DEBOUNCE).await;
@@ -63,25 +71,42 @@ impl Backend {
                 None => return, // document was closed
             };
 
-            let diagnostics = compute_diagnostics(&binary, text).await;
+            let diagnostics = compute_diagnostics(&parser_cell, text).await;
             client.publish_diagnostics(uri, diagnostics, None).await;
         });
     }
 }
 
+/// Provision the Docker-backed parser exactly once and return the shared result.
+/// The blocking bootstrap (image download/load, container start) runs off the
+/// async runtime; concurrent callers all await the single initialization.
+async fn provision(
+    cell: &OnceCell<std::result::Result<Parser, String>>,
+) -> &std::result::Result<Parser, String> {
+    cell.get_or_init(|| async {
+        tokio::task::spawn_blocking(|| parser::init().map_err(|e| e.message))
+            .await
+            .unwrap_or_else(|e| Err(format!("googlesql-lsp: parser init panicked: {e}")))
+    })
+    .await
+}
+
 /// Run the parser (on a blocking thread) and convert its output to diagnostics.
-async fn compute_diagnostics(binary: &Arc<Option<PathBuf>>, text: String) -> Vec<Diagnostic> {
+async fn compute_diagnostics(
+    parser_cell: &OnceCell<std::result::Result<Parser, String>>,
+    text: String,
+) -> Vec<Diagnostic> {
     if text.trim().is_empty() {
         return Vec::new();
     }
 
-    let bin = match binary.as_ref() {
-        Some(b) => b.clone(),
-        None => return Vec::new(),
+    let backend = match provision(parser_cell).await { //TODO Rename ~parser_instance?
+        Ok(p) => p.clone(),
+        Err(_) => return Vec::new(), // bootstrap failed; error already surfaced
     };
 
     let source = text.clone();
-    let parsed = tokio::task::spawn_blocking(move || parser::run_parse(&bin, &text)).await;
+    let parsed = tokio::task::spawn_blocking(move || parser::run_parse(&backend, &text)).await;
 
     match parsed {
         Ok(Ok(output)) => parse_output(&output, &source),
@@ -107,22 +132,20 @@ impl LanguageServer for Backend {
     }
 
     async fn initialized(&self, _: InitializedParams) {
-        match self.binary.as_ref() {
-            Some(path) => {
+        // Provision the Docker-backed parser now so first-run download/setup happens
+        // up front and any failure is reported immediately.
+        match self.ensure_parser().await {
+            Ok(Parser::Docker { image }) => {
                 self.client
                     .log_message(
                         MessageType::INFO,
-                        format!("googlesql-lsp: using parser binary at {}", path.display()),
+                        format!("googlesql-lsp: using GoogleSQL parser via Docker image {image}"),
                     )
                     .await;
             }
-            None => {
+            Err(message) => {
                 self.client
-                    .show_message(
-                        MessageType::ERROR,
-                        "googlesql-lsp: could not find the `execute_query` binary. \
-                         Run scripts/install-parser.sh or set $GOOGLESQL_EXECUTE_QUERY.",
-                    )
+                    .show_message(MessageType::ERROR, message.clone())
                     .await;
             }
         }
