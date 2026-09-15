@@ -15,11 +15,16 @@ pub fn build(b: *std.Build) void {
     const translate_c_to_zig = b.addUpdateSourceFiles();
     translate_c_to_zig.addCopyFileToSource(translate_c.getOutput(), "src/c.zig");
 
+    const lsp_kit = b.dependency("lsp_kit", .{});
+
     const root_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
         .link_libcpp = true,
+        .imports = &.{
+            .{ .name = "lsp", .module = lsp_kit.module("lsp") },
+        },
     });
     root_module.addObjectFile(b.path("lib/libgooglesql_parser.a"));
     // GoogleSql uses Abseil library. And Abseil's time zone lookup calls CoreFoundation on macOS,
