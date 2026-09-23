@@ -45,4 +45,11 @@ pub fn build(b: *std.Build) void {
     run_step.dependOn(&run_cmd.step);
     run_cmd.step.dependOn(b.getInstallStep());
     run_cmd.addPassthruArgs();
+
+    const tests = b.addTest(.{
+        .root_module = exe.root_module,
+    });
+    const run_tests = b.addRunArtifact(tests);
+    const tests_step = b.step("test", "Run tests");
+    tests_step.dependOn(&run_tests.step);
 }
