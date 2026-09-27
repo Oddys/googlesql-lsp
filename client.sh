@@ -10,6 +10,8 @@ send '{"jsonrpc":"2.0","method":"initialized","params":{}}'
 
 send '{"jsonrpc":"2.0","method":"textDocument/didOpen","params":{"textDocument":{"uri":"'"$URI"'","languageId":"SQL","version":1,"text":"SELECT 1;"}}}'
 
+send '{"jsonrpc":"2.0","method":"textDocument/didChange","params":{"textDocument":{"uri":"'"$URI"'","version":2},"contentChanges":[{"text":"SELECT 2;"}]}}'
+
 send '{"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":"'"$URI"'"}}}'
 
 send '{"jsonrpc":"2.0","id":102,"method":"shutdown"}'

@@ -109,11 +109,16 @@ const Handler = struct {
         arena: std.mem.Allocator,
         params: lsp.types.TextDocument.DidOpenParams,
     ) !void {
-        std.log.debug("Received 'textDocument/didOpen' notification", .{});
-
         const uri = params.textDocument.uri;
+        const version = params.textDocument.version;
+
+        std.log.debug(
+            "Received 'textDocument/didOpen' notification for {s}, v{d}",
+            .{ uri, version },
+        );
+
         try self.putFile(uri, params.textDocument.text);
-        try self.publishDiagnostics(arena, uri, params.textDocument.text);
+        try self.publishDiagnostics(arena, uri, version, params.textDocument.text);
     }
 
     pub fn @"textDocument/didChange"(
@@ -121,15 +126,19 @@ const Handler = struct {
         arena: std.mem.Allocator,
         params: lsp.types.TextDocument.DidChangeParams,
     ) !void {
-        std.log.debug("Received 'textDocument/didChange' notification", .{});
-
         const uri = params.textDocument.uri;
+        const version = params.textDocument.version;
+
+        std.log.debug(
+            "Received 'textDocument/didChange' notification for {s}, v{d}",
+            .{ uri, version },
+        );
 
         for (params.contentChanges) |content_change| {
             switch (content_change) {
                 .text_document_content_change_whole_document => |change| {
                     try self.putFile(uri, change.text);
-                    try self.publishDiagnostics(arena, uri, change.text);
+                    try self.publishDiagnostics(arena, uri, version, change.text);
                 },
                 .text_document_content_change_partial => {
                     @panic("Partial changes are not supported");
@@ -191,16 +200,16 @@ const Handler = struct {
     }
 
     /// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_publishDiagnostics
-    fn publishDiagnostics(self: *Self, arena: std.mem.Allocator, uri: []const u8, text: []const u8) !void {
+    fn publishDiagnostics(self: *Self, arena: std.mem.Allocator, uri: []const u8, version: i32, text: []const u8) !void {
         const diagnostics = diagnose(text);
-        std.log.debug("Publishing {d} diagnostic(s) for '{s}'", .{ diagnostics.len, uri });
+        std.log.debug("Publishing {d} diagnostic(s) for '{s}', v{d}", .{ diagnostics.len, uri, version });
 
         try self.transport.writeNotification(
             self.io,
             arena,
             "textDocument/publishDiagnostics",
             lsp.types.publish_diagnostics.Params,
-            .{ .uri = uri, .diagnostics = diagnostics },
+            .{ .uri = uri, .version = version, .diagnostics = diagnostics },
             .{ .emit_null_optional_fields = false },
         );
     }
