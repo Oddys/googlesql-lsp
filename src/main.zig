@@ -1,4 +1,5 @@
 const std = @import("std");
+const testing = std.testing;
 
 const lsp = @import("lsp");
 
@@ -74,7 +75,10 @@ const Handler = struct {
         std.log.debug("Received 'initialize' message: {}", .{request});
 
         if (request.clientInfo) |client_info| {
-            std.log.info("The client is '{s}' ({s})", .{ client_info.name, client_info.version orelse "unknown version" });
+            std.log.info(
+                "The client is '{s}' ({s})",
+                .{ client_info.name, client_info.version orelse "unknown version" },
+            );
         }
 
         const server_capabilities: lsp.types.ServerCapabilities = .{
@@ -200,7 +204,13 @@ const Handler = struct {
     }
 
     /// https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocument_publishDiagnostics
-    fn publishDiagnostics(self: *Self, arena: std.mem.Allocator, uri: []const u8, version: i32, text: []const u8) !void {
+    fn publishDiagnostics(
+        self: *Self,
+        arena: std.mem.Allocator,
+        uri: []const u8,
+        version: i32,
+        text: []const u8,
+    ) !void {
         const diagnostics = diagnose(text);
         std.log.debug("Publishing {d} diagnostic(s) for '{s}', v{d}", .{ diagnostics.len, uri, version });
 
@@ -247,6 +257,11 @@ fn diagnose(text: []const u8) []const lsp.types.Diagnostic {
     };
 }
 
+// KCOV_EXCL_START
+test {
+    testing.refAllDecls(@This());
+}
+
 test "putFile adds text" {
     var handler: Handler = .init(std.testing.allocator, undefined, undefined);
     defer handler.deinit();
@@ -273,3 +288,163 @@ test "putFile replaces text" {
     try std.testing.expectEqualStrings("SELECT 2;", stored_text.?);
     try std.testing.expectEqual(1, handler.files.count());
 }
+
+/// Captures messages written by the handler instead of sending them to stdout
+const TestTransport = struct {
+    transport: lsp.Transport = .{
+        .vtable = &.{
+            .readJsonMessage = readJsonMessage,
+            .writeJsonMessage = writeJsonMessage,
+        },
+    },
+    buffer: [4096]u8 = undefined,
+    len: usize = 0,
+
+    fn readJsonMessage(
+        _: *lsp.Transport,
+        _: std.Io,
+        _: std.mem.Allocator,
+    ) lsp.Transport.ReadError![]u8 {
+        return error.EndOfStream;
+    }
+
+    fn writeJsonMessage(
+        transport: *lsp.Transport,
+        _: std.Io,
+        msg: []const u8,
+    ) lsp.Transport.WriteError!void {
+        const self: *TestTransport = @fieldParentPtr("transport", transport);
+        @memcpy(self.buffer[0..msg.len], msg);
+        self.len = msg.len;
+    }
+
+    fn written(self: *TestTransport) []const u8 {
+        return self.buffer[0..self.len];
+    }
+};
+
+test "didOpen stores file text" {
+    var test_transport: TestTransport = .{};
+    var handler: Handler = .init(std.testing.allocator, std.testing.io, &test_transport.transport);
+    defer handler.deinit();
+
+    try handler.@"textDocument/didOpen"(std.testing.allocator, .{ .textDocument = .{
+        .uri = "file:///query.sql",
+        .languageId = .{ .custom_value = "sql" },
+        .version = 1,
+        .text = "SELECT 1;",
+    } });
+
+    try std.testing.expectEqualStrings("SELECT 1;", handler.files.get("file:///query.sql").?);
+    try std.testing.expectEqual(1, handler.files.count());
+}
+
+test "didOpen publishes diagnostics for uri and version" {
+    var test_transport: TestTransport = .{};
+    var handler: Handler = .init(std.testing.allocator, std.testing.io, &test_transport.transport);
+    defer handler.deinit();
+
+    try handler.@"textDocument/didOpen"(
+        std.testing.allocator,
+        .{
+            .textDocument = .{
+                .uri = "file:///query.sql",
+                .languageId = .{ .custom_value = "sql" },
+                .version = 100,
+                .text = "SELECT 1;",
+            },
+        },
+    );
+
+    const parsed = try std.json.parseFromSlice(
+        struct { method: []const u8, params: lsp.types.publish_diagnostics.Params },
+        std.testing.allocator,
+        test_transport.written(),
+        .{ .ignore_unknown_fields = true },
+    );
+    defer parsed.deinit();
+
+    const method = parsed.value.method;
+    const params = parsed.value.params;
+    try std.testing.expectEqualStrings("textDocument/publishDiagnostics", method);
+    try std.testing.expectEqualStrings("file:///query.sql", params.uri);
+    try std.testing.expectEqual(100, params.version);
+    try std.testing.expectEqual(1, params.diagnostics.len);
+}
+
+test "didChange stores file text and publishes diagnostics" {
+    var transport: TestTransport = .{};
+    var handler: Handler = .init(testing.allocator, testing.io, &transport.transport);
+    defer handler.deinit();
+
+    const uri = "file://query.sql";
+    const version = 2;
+    const contents = "SELECT 2";
+    const in_params: lsp.types.TextDocument.DidChangeParams = .{
+        .textDocument = .{
+            .uri = uri,
+            .version = version,
+        },
+        .contentChanges = &.{
+            .{ .text_document_content_change_whole_document = .{ .text = contents } },
+        },
+    };
+
+    try handler.@"textDocument/didChange"(testing.allocator, in_params);
+
+    const stored = handler.files.get(uri);
+    try testing.expect(stored != null);
+    try testing.expectEqualStrings(contents, stored.?);
+    try testing.expectEqual(1, handler.files.size);
+
+    const parsed = try std.json.parseFromSlice(
+        struct { method: []const u8, params: lsp.types.publish_diagnostics.Params },
+        testing.allocator,
+        transport.written(),
+        .{ .ignore_unknown_fields = true },
+    );
+    defer parsed.deinit();
+
+    const method = parsed.value.method;
+    const out_params = parsed.value.params;
+    try testing.expectEqualStrings("textDocument/publishDiagnostics", method);
+    try testing.expectEqualStrings(uri, out_params.uri);
+    try testing.expectEqual(version, out_params.version);
+    try testing.expectEqual(1, out_params.diagnostics.len);
+}
+
+test "didClose clears the file and diagnostics" {
+    var transport: TestTransport = .{};
+    var handler: Handler = .init(testing.allocator, testing.io, &transport.transport);
+    defer handler.deinit();
+
+    const uri = "file://query.sql";
+    try handler.putFile(uri, "SELECT 1");
+
+    const in_params: lsp.types.TextDocument.DidCloseParams = .{ .textDocument = .{ .uri = uri } };
+    try handler.@"textDocument/didClose"(testing.allocator, in_params);
+
+    try testing.expectEqual(null, handler.files.get(uri));
+    try testing.expectEqual(0, handler.files.size);
+
+    const written = transport.written();
+    const written_type = struct {
+        method: []const u8,
+        params: lsp.types.publish_diagnostics.Params,
+    };
+    const parsed = try std.json.parseFromSlice(
+        written_type,
+        testing.allocator,
+        written,
+        .{ .ignore_unknown_fields = true },
+    );
+    defer parsed.deinit();
+
+    const method = parsed.value.method;
+    const params = parsed.value.params;
+    try testing.expectEqualStrings("textDocument/publishDiagnostics", method);
+    try testing.expectEqualStrings(uri, params.uri);
+    try testing.expectEqual(0, params.diagnostics.len);
+}
+
+// KCOV_EXCL_END

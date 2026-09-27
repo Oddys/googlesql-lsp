@@ -8,3 +8,5 @@ Functionality:
 
 Chores:
 - [ ] Unify function parameter names in Handler
+- [ ] Unify imports (use aliasing for structs in lsp.types)
+- [ ] Add kcov to build.zig
