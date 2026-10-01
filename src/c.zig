@@ -9,6 +9,7 @@ pub const max_align_t = extern struct {
 };
 pub const gsql_syntax_error = extern struct {
     start_byte: c_int = 0,
+    end_byte: c_int = 0,
     line: c_int = 0,
     column: c_int = 0,
     message: [*c]const u8 = null,
