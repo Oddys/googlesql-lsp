@@ -36,12 +36,30 @@
             .url = "git+https://github.com/zigtools/lsp-kit.git#d148676ace1eaecf3c703ce7d350d0e94e502ed7",
             .hash = "lsp_kit-0.1.0-bi_PLwc2DACoR7VTz_qKFXUvtx7veHvWcTQvP9pDFLpk",
         },
+        .@"googlesql_parser-macos_x86_64" = .{
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.1.0-2026.9.1/googlesql_parser-macos_x86_64.tar.gz",
+            .hash = "N-V-__8AABfwLQSOPaNEKVqnlKGSXgINc_g3Q6dHW70rZn5j",
+            .lazy = true,
+        },
+        .@"googlesql_parser-macos_arm64" = .{
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.1.0-2026.9.1/googlesql_parser-macos_arm64.tar.gz",
+            .hash = "N-V-__8AAE-XGQRROUHX7MMLsgILX96BwPTso2U8-fTp6jcE",
+            .lazy = true,
+        },
+        .@"googlesql_parser-linux_x86_64" = .{
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.1.0-2026.9.1/googlesql_parser-linux_x86_64.tar.gz",
+            .hash = "N-V-__8AAGHURgVqzZOs6W-otmp1-pQm96vRcwVFnV7WXqUZ",
+            .lazy = true,
+        },
+        .@"googlesql_parser-linux_aarch64" = .{
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.1.0-2026.9.1/googlesql_parser-linux_aarch64.tar.gz",
+            .hash = "N-V-__8AAPEHXAXHBvW_LDArsOrcH-PRql8hJMt6dn2kbhWI",
+            .lazy = true,
+        },
     },
     .paths = .{
         "build.zig",
         "build.zig.zon",
         "src",
-        "include",
-        "README.md",
     },
 }
