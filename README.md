@@ -5,7 +5,7 @@ Under the hood it uses the [googlesql-ffi library](https://github.com/Oddys/goog
 
 To prepare fresh build:
 ```sh
-rm -r .zig-cache zig-out zig-pkg src/c.zig 2>/dev/null
+rm -rf .zig-cache zig-out zig-pkg src/c.zig 2>/dev/null
 ```
 
 To try test script:
