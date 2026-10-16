@@ -23,13 +23,13 @@ pub fn build(b: *std.Build) void {
     });
     const parser_dep = switch (target.result.os.tag) {
         .macos => switch (target.result.cpu.arch) {
-            .x86_64 => "googlesql_parser_macos_x86_64",
-            .aarch64 => "googlesql_parser_macos_arm64",
+            .x86_64 => "googlesql_ffi_macos_x86_64",
+            .aarch64 => "googlesql_ffi_macos_arm64",
             else => @panic("Unsupported target architecture"),
         },
         .linux => switch (target.result.cpu.arch) {
-            .x86_64 => "googlesql_parser_linux_x86_64",
-            .aarch64 => "googlesql_parser_linux_aarch64",
+            .x86_64 => "googlesql_ffi_linux_x86_64",
+            .aarch64 => "googlesql_ffi_linux_aarch64",
             else => @panic("Unsupported target architecture"),
         },
         else => @panic("Unsupported target OS"),
@@ -47,7 +47,7 @@ pub fn build(b: *std.Build) void {
         root_module.addObjectFile(dir.path(b, "lib/libgooglesql_ffi.a"));
         translate_c.addIncludePath(dir.path(b, "include"));
     } else if (b.dependencyLazy(parser_dep, .{})) |dep| {
-        root_module.addObjectFile(dep.path("lib/libgooglesql_parser.a"));
+        root_module.addObjectFile(dep.path("lib/libgooglesql_ffi.a"));
         translate_c.addIncludePath(dep.path("include"));
     } else |_| { // the toolchain will fetch the dependency and re-run build
         return;
@@ -64,7 +64,7 @@ pub fn build(b: *std.Build) void {
         .root_module = root_module,
     });
 
-    // ZLS can't use zig build yet (zigtools/zls#3208) to resolve c.h and include/googlesql_parser.h,
+    // ZLS can't use zig build yet (zigtools/zls#3208) to resolve c.h and include/googlesql_ffi.h,
     // so we manually store the output of TranslateC to src/c.zig to enable completions in the editor.
     // Remove once ZLS can work with c.h directly
     const translate_c_to_zig = b.addUpdateSourceFiles();
