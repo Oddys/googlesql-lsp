@@ -10,7 +10,7 @@ rm -r .zig-cache zig-out zig-pkg src/c.zig 2>/dev/null
 
 To try test script:
 ```sh
-./client.sh | ./zig-out/bin/googlesql_lsp
+./client.sh | ./zig-out/bin/googlesql_lsp_<platform>
 ```
 
 ## Coverage

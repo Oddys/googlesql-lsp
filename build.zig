@@ -36,15 +36,15 @@ pub fn build(b: *std.Build) void {
     };
 
     // The path to a locally downloaded parser tarball could be provided
-    if (b.option([]const u8, "parser-tar", "Path to a local googlesql_parser_<platform>.tar.gz")) |tar_path| {
+    if (b.option([]const u8, "gsql-tar", "Path to a local googlesql_ffi_<platform>.tar.gz")) |tar_path| {
         const untar = b.addSystemCommand(&.{ "tar", "-xzf" });
         // tar_path could be either absolute or local
         untar.addFileArg(.{ .cwd_relative = tar_path });
         // `--strip-components=1` drops the tarball's top-level directory
         // `-C` expects the output directory (added by addOutputDirectoryArg)
         untar.addArgs(&.{ "--strip-components=1", "-C" });
-        const dir = untar.addOutputDirectoryArg("googlesql_parser");
-        root_module.addObjectFile(dir.path(b, "lib/libgooglesql_parser.a"));
+        const dir = untar.addOutputDirectoryArg("googlesql_ffi");
+        root_module.addObjectFile(dir.path(b, "lib/libgooglesql_ffi.a"));
         translate_c.addIncludePath(dir.path(b, "include"));
     } else if (b.dependencyLazy(parser_dep, .{})) |dep| {
         root_module.addObjectFile(dep.path("lib/libgooglesql_parser.a"));
