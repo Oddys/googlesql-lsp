@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    tags: "v*"
+    tags: ["v*"]
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
         with:
           version: 0.17.0
       - run: zig build test --summary all
-      - run: zig build
+      - run: zig build -Dcpu=baseline
       # tar keeps the executable bit, which upload-artifact's zip drops
       - run: tar -czf googlesql_lsp_${{ matrix.platform }}.tar.gz -C zig-out/bin googlesql_lsp_${{ matrix.platform }}
       - uses: actions/upload-artifact@v7
