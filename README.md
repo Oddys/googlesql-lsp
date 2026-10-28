@@ -17,7 +17,7 @@ zig fetch --save=googlesql_ffi_macos_x86_64 "https://github.com/Oddys/googlesql-
 To prepare fresh build:
 ```sh
 rm -r ~/.cache/zig/
-rm -rf .zig-cache zig-out zig-pkg src/c.zig 2>/dev/null
+rm -rf .zig-cache zig-out zig-pkg 2>/dev/null
 ```
 
 To try test script:

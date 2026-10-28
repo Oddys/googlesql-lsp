@@ -1,16 +1,11 @@
 const std = @import("std");
 const testing = std.testing;
 
+const c = @import("c");
 const lsp = @import("lsp");
 const Encoding = lsp.offsets.Encoding;
 const Diagnostic = lsp.types.Diagnostic;
 const Range = lsp.types.Range;
-
-/// Temporary workaround for ZLS to work
-/// Remove src/c.zig file and revert to this,
-/// once ZLS catches up with Zig build system:
-/// const c = @import("c");
-const c = @import("c.zig");
 
 pub fn main(init: std.process.Init) !void {
     var read_buffer: [256]u8 = undefined; // lsp-kit requires this buffer to be at least 128 bytes
