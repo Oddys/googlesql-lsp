@@ -4,12 +4,14 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const translate_c = b.addTranslateC(.{
-        .root_source_file = b.path("src/c.h"),
+    const lsp_kit = b.dependency("lsp_kit", .{});
+    const translate_c = b.dependency("translate_c", .{});
+    const Translator = @import("translate_c").Translator;
+    const t: Translator = .init(translate_c, .{
+        .c_source_file = b.path("src/c.h"),
         .target = target,
         .optimize = optimize,
     });
-    const lsp_kit = b.dependency("lsp_kit", .{});
     const root_module = b.createModule(.{
         .root_source_file = b.path("src/main.zig"),
         .target = target,
@@ -17,7 +19,7 @@ pub fn build(b: *std.Build) void {
         .link_libcpp = true,
         .imports = &.{
             .{ .name = "lsp", .module = lsp_kit.module("lsp") },
-            .{ .name = "c", .module = translate_c.createModule() },
+            .{ .name = "c", .module = t.mod },
         },
     });
     const parser_dep = switch (target.result.os.tag) {
@@ -44,10 +46,10 @@ pub fn build(b: *std.Build) void {
         untar.addArgs(&.{ "--strip-components=1", "-C" });
         const dir = untar.addOutputDirectoryArg("googlesql_ffi");
         root_module.addObjectFile(dir.path(b, "lib/libgooglesql_ffi.a"));
-        translate_c.addIncludePath(dir.path(b, "include"));
+        t.addIncludePath(dir.path(b, "include"));
     } else if (b.dependencyLazy(parser_dep, .{})) |dep| {
         root_module.addObjectFile(dep.path("lib/libgooglesql_ffi.a"));
-        translate_c.addIncludePath(dep.path("include"));
+        t.addIncludePath(dep.path("include"));
     } else |_| { // the toolchain will fetch the dependency and re-run build
         return;
     }

@@ -545,9 +545,9 @@ test "errToDiagnostic handles out-of-range offsets and missing message" {
 
     const text = "SEL";
     const cases = [_]c.gsql_error{
-        .{ .start = 2, .end = 1 }, // end before start
-        .{ .start = 2, .end = 4 }, // end past text
-        .{ .start = 4, .end = 4 }, // both past text
+        .{ .start = 2, .end = 1, .message = null }, // end before start
+        .{ .start = 2, .end = 4, .message = null }, // end past text
+        .{ .start = 4, .end = 4, .message = null }, // both past text
     };
     const expected = [cases.len]Range{
         .{ .start = .{ .line = 0, .character = 2 }, .end = .{ .line = 0, .character = 2 } },
