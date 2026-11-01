@@ -36,6 +36,8 @@ pub fn build(b: *std.Build) void {
         else => @panic("Unsupported target OS"),
     };
 
+    var lib_path: std.Build.LazyPath = undefined;
+    var include_path: std.Build.LazyPath = undefined;
     // The path to a locally downloaded parser tarball could be provided
     if (b.option([]const u8, "gsql-tar", "Path to a local googlesql_ffi_<platform>.tar.gz")) |tar_path| {
         const untar = b.addSystemCommand(&.{ "tar", "-xzf" });
@@ -45,14 +47,21 @@ pub fn build(b: *std.Build) void {
         // `-C` expects the output directory (added by addOutputDirectoryArg)
         untar.addArgs(&.{ "--strip-components=1", "-C" });
         const dir = untar.addOutputDirectoryArg("googlesql_ffi");
-        root_module.addObjectFile(dir.path(b, "lib/libgooglesql_ffi.a"));
-        t.addIncludePath(dir.path(b, "include"));
+        lib_path = dir.path(b, "lib/libgooglesql_ffi.a");
+        include_path = dir.path(b, "include");
     } else if (b.dependencyLazy(parser_dep, .{})) |dep| {
-        root_module.addObjectFile(dep.path("lib/libgooglesql_ffi.a"));
-        t.addIncludePath(dep.path("include"));
+        lib_path = dep.path("lib/libgooglesql_ffi.a");
+        include_path = dep.path("include");
     } else |_| { // the toolchain will fetch the dependency and re-run build
         return;
     }
+    root_module.addObjectFile(lib_path);
+    t.addIncludePath(include_path);
+    b.getInstallStep().dependOn(&b.addInstallDirectory(.{
+        .source_dir = include_path, // from
+        .install_dir = .header, // to
+        .install_subdir = "",
+    }).step);
     // GoogleSql uses Abseil library. And Abseil's time zone lookup calls CoreFoundation on macOS,
     // which is not shipped with the lib.
     if (target.result.os.tag.isDarwin()) root_module.linkFramework("CoreFoundation", .{});
