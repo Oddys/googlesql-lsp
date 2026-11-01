@@ -5,7 +5,7 @@ Functionality:
 - [ ] Implement handling of partial updates
 - [x] Add other MacOS and Linux build targets
 - [ ] Optimize build for Prod
-- [ ] Add license
+- [x] Add license
 
 Chores:
 - [ ] Unify function parameter names in Handler

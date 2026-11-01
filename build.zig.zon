@@ -9,23 +9,23 @@
             .hash = "lsp_kit-0.1.0-bi_PLwc2DACoR7VTz_qKFXUvtx7veHvWcTQvP9pDFLpk",
         },
         .googlesql_ffi_linux_aarch64 = .{
-            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.2.0-2026.9.1/googlesql_ffi_linux_aarch64.tar.gz",
-            .hash = "googlesql_ffi_linux_aarch64-0.2.0-2026.9.1-kT5abFdQRAUs6J1fh0hmUulhh1ztqTeHb_ff952vjJOX",
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.3.0-2026.9.1/googlesql_ffi_linux_aarch64.tar.gz",
+            .hash = "googlesql_ffi_linux_aarch64-0.3.0-2026.9.1-kT5abBJiRQXUhORjC9BY2nW32TN24IL7TE6SR_oZUZay",
             .lazy = true,
         },
         .googlesql_ffi_linux_x86_64 = .{
-            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.2.0-2026.9.1/googlesql_ffi_linux_x86_64.tar.gz",
-            .hash = "googlesql_ffi_linux_x86_64-0.2.0-2026.9.1-kT5abJQOLwW5wUmhEX8MLYSivJ175km7FtFpvjBfE5Dj",
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.3.0-2026.9.1/googlesql_ffi_linux_x86_64.tar.gz",
+            .hash = "googlesql_ffi_linux_x86_64-0.3.0-2026.9.1-kT5abE8gMAVDjkTExSU-j-IEywFU3446THeVFt7uxwhe",
             .lazy = true,
         },
         .googlesql_ffi_macos_arm64 = .{
-            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.2.0-2026.9.1/googlesql_ffi_macos_arm64.tar.gz",
-            .hash = "googlesql_ffi_macos_arm64-0.2.0-2026.9.1-kT5abNNXCwTdAZcYmmodIQnTf2F8H-LJEa9zUgA-SItS",
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.3.0-2026.9.1/googlesql_ffi_macos_arm64.tar.gz",
+            .hash = "googlesql_ffi_macos_arm64-0.3.0-2026.9.1-kT5abI5pDAQbMWP4NZkDm40hBW_jI-zvF6rFPb6ueYkm",
             .lazy = true,
         },
         .googlesql_ffi_macos_x86_64 = .{
-            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.2.0-2026.9.1/googlesql_ffi_macos_x86_64.tar.gz",
-            .hash = "googlesql_ffi_macos_x86_64-0.2.0-2026.9.1-kT5abEStHgTN2QsCXKcwVegXz9HEdZkscMYZzycof8_s",
+            .url = "https://github.com/Oddys/googlesql-ffi/releases/download/v0.3.0-2026.9.1/googlesql_ffi_macos_x86_64.tar.gz",
+            .hash = "googlesql_ffi_macos_x86_64-0.3.0-2026.9.1-kT5abP--HwR71X3r6dKIWauceOuA9wuIqoUuNP53H1lw",
             .lazy = true,
         },
         .translate_c = .{
