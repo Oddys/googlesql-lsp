@@ -28,5 +28,6 @@ To try test script:
 ## Coverage
 To compute test coverage with kcov:
 ```sh
+zig build test
 kcov --clean --include-path=src --exclude-region=KCOV_EXCL_START:KCOV_EXCL_END zig-out/coverage zig-out/bin/test
 ```
